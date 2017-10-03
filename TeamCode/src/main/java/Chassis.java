@@ -12,19 +12,30 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 //package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.GyroSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.Func;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+
+import java.util.Locale;
+@TeleOp(name = "Chassis", group = "Chassis")
 
 public class Chassis extends OpMode {
     // basic modes of operation for the chassis
 
+//@Disabled                            // Uncomment this to add to the opmode list
 
     public static final int ChassisMode_Stop = 0;
     public static final int ChassisMode_Drive = 1;
     public static final int ChassisMode_Turn = 2;
     public static final int ChassisMode_Idle = 3;
+    public static final int ChassisMode_TeleOp = 4;
 
     //current mode of operation for chassis
     private int ChassisMode_Current = ChassisMode_Stop;
@@ -63,6 +74,8 @@ public class Chassis extends OpMode {
 
     // The IMU sensor object
     BNO055IMU imu;
+    // State used for updating telemetry
+    Orientation angles;
 
     private ElapsedTime runtime = new ElapsedTime();
 
@@ -77,11 +90,29 @@ public class Chassis extends OpMode {
     @Override
     public void init() {
         telemetry.addData("Status", "Initialized");
+        composeTelemetry();
+        telemetry.log().add("Waiting for start...");
 
         LDM1 = hardwareMap.dcMotor.get("LDM1");
         RDM1 = hardwareMap.dcMotor.get("RDM1");
         LDM2 = hardwareMap.dcMotor.get("LDM2");
         RDM2 = hardwareMap.dcMotor.get("RDM2");
+
+        if(LDM1 == null){
+            telemetry.log().add("LDM1 is null...");
+        }
+
+        if(LDM2 == null){
+            telemetry.log().add("LDM2 is null...");
+        }
+
+        if(RDM1 == null){
+            telemetry.log().add("RDM1 is null...");
+        }
+
+        if(RDM2 == null){
+            telemetry.log().add("RDM2 is null...");
+        }
 
         LDM1.setDirection(DcMotor.Direction.REVERSE);
         LDM2.setDirection(DcMotor.Direction.REVERSE);
@@ -100,11 +131,11 @@ public class Chassis extends OpMode {
         // algorithm here just reports accelerations to the logcat log; it doesn't actually
         // provide positional information.
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
-        parameters.angleUnit           = BNO055IMU.AngleUnit.DEGREES;
-        parameters.accelUnit           = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
+        parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
+        parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
         parameters.calibrationDataFile = "BNO055IMUCalibration.json"; // see the calibration sample opmode
-        parameters.loggingEnabled      = true;
-        parameters.loggingTag          = "IMU";
+        parameters.loggingEnabled = true;
+        parameters.loggingTag = "IMU";
         parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
 
         // Retrieve and initialize the IMU. We expect the IMU to be attached to an I2C port
@@ -140,7 +171,7 @@ public class Chassis extends OpMode {
         if (ChassisMode_Turn == ChassisMode_Current) {
             DoTurn();
         }
-
+        telemetry.update();
     }
 
     private void Dostop() {
@@ -155,8 +186,8 @@ public class Chassis extends OpMode {
         //stop the motors
         LDM1.setPower(TargetMotorPowerLeft);
         LDM2.setPower(TargetMotorPowerLeft);
-        RDM1.setPower(TargetMotorPowerLeft);
-        RDM2.setPower(TargetMotorPowerLeft);
+        RDM1.setPower(TargetMotorPowerRight);
+        RDM2.setPower(TargetMotorPowerRight);
 
         //goto chassis idle mode
         ChassisMode_Current = ChassisMode_Idle;
@@ -198,6 +229,7 @@ public class Chassis extends OpMode {
         if ((inchesTraveled >= (TargetDistanceInches - chassis_driveTolInches)) ||
                 (runtime.milliseconds() > chassis_driveTimeout_mS)) {
             cmdComplete = true;
+            Dostop();
         }
 
 
@@ -245,9 +277,89 @@ public class Chassis extends OpMode {
 
         // average the distance traveled by each wheel to determine the distance travled by the
         // robot
-        return 1;
+
+        int totaltics = LDM1.getCurrentPosition() +
+                LDM2.getCurrentPosition() +
+                RDM1.getCurrentPosition() +
+                RDM2.getCurrentPosition();
+        double averagetics = totaltics/4;
+        double inches = averagetics/ticksPerInch;
+
+        return inches;
     }
 
+    public void doTeleOp(double LDMpower,double RDMpower){
+
+
+        ChassisMode_Current=ChassisMode_TeleOp;
+        LDM1.setPower(LDMpower);
+        LDM2.setPower(LDMpower);
+        RDM1.setPower(RDMpower);
+        RDM2.setPower(RDMpower);
+    }
+    /*
+        * Code to run ONCE when the driver hits PLAY
+        */
+    @Override
+    public void start() {
+
+        runtime.reset();
+        //shootTrigger.setPosition(Settings.reset);
+    }
+    void composeTelemetry() {
+
+        // At the beginning of each telemetry update, grab a bunch of data
+        // from the IMU that we will then display in separate lines.
+        telemetry.addAction(new Runnable() { @Override public void run()
+        {
+            // Acquiring the angles is relatively expensive; we don't want
+            // to do that in each of the three items that need that info, as that's
+            // three times the necessary expense.
+            angles   = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        }
+        });
+
+        telemetry.addLine()
+                .addData("status", new Func<String>() {
+                    @Override public String value() {
+                        return imu.getSystemStatus().toShortString();
+                    }
+                })
+                .addData("calib", new Func<String>() {
+                    @Override public String value() {
+                        return imu.getCalibrationStatus().toString();
+                    }
+                });
+
+        telemetry.addLine()
+                .addData("heading", new Func<String>() {
+                    @Override public String value() {
+                        return formatAngle(angles.angleUnit, angles.firstAngle);
+                    }
+                })
+                .addData("roll", new Func<String>() {
+                    @Override public String value() {
+                        return formatAngle(angles.angleUnit, angles.secondAngle);
+                    }
+                })
+                .addData("pitch", new Func<String>() {
+                    @Override public String value() {
+                        return formatAngle(angles.angleUnit, angles.thirdAngle);
+                    }
+                });
+    }
+
+    //----------------------------------------------------------------------------------------------
+    // Formatting
+    //----------------------------------------------------------------------------------------------
+
+    String formatAngle(AngleUnit angleUnit, double angle) {
+        return formatDegrees(AngleUnit.DEGREES.fromUnit(angleUnit, angle));
+    }
+
+    String formatDegrees(double degrees){
+        return String.format(Locale.getDefault(), "%.1f", AngleUnit.DEGREES.normalize(degrees));
+    }
 }
 
 
