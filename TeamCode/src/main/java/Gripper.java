@@ -5,6 +5,7 @@
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 
@@ -28,7 +29,7 @@ public class Gripper extends OpMode {
     cmd_open
     Gripper_current == Gripper_opening;
     reset open_timer = 0
-    loop until open_timer to be greater than GRIPPER_OPEN_TIME_MS
+    loop until open_timer to be greater than GRIPPER_OPEN_TkIME_MS
     When open_timer > GRIPPER_OPEN_TIME_MS
     set Gripper_current = Gripper_open
     Do Nothing until we recieve another cmd
@@ -47,13 +48,12 @@ public class Gripper extends OpMode {
 
 
     // Gripper states
-    public static int GripperMode_unknown = 0;
-    public static int GripperMode_closing =1;
-    public static int GripperMode_closed = 2;
-    public static int GripperMode_opening = 1;
-    public static int GripperMode_open = 4;
-
-    private int Gripper_current = GripperMode_unknown;
+    public static final int GRIPPER_MODE_UNKNOWN = 0;
+    public static final int GRIPPER_MODE_CLOSING =1;
+    public static final int GRIPPER_MODE_CLOSED = 2;
+    public static final int GRIPPER_MODE_OPENING = 3;
+    public static final int GRIPPER_MODE_OPEN = 4;
+    private int Gripper_current = GRIPPER_MODE_UNKNOWN;
 
 
     // Servo Position variables
@@ -64,6 +64,9 @@ public class Gripper extends OpMode {
     private final double SERVO_POS_RIGHT_OPEN = .5;
     private final double SERVO_POS_RIGHT_CLOSED = 0;
 
+    private Servo ServoGripperL = null;
+    private Servo ServoGripperR = null;
+
     /*
      * Code to run ONCE when the driver hits INIT
      */
@@ -71,6 +74,8 @@ public class Gripper extends OpMode {
     public void init() {
         telemetry.addData("Status", "Initialized");
 
+        ServoGripperL = hardwareMap.servo.get("Servo_GripperL");
+        ServoGripperR = hardwareMap.servo.get("Servo_GripperR");
         /* eg: Initialize the hardware variables. Note that the strings used here as parameters
          * to 'get' must correspond to the names assigned during the robot configuration
          * step (using the FTC Robot Controller app on the phone).
@@ -89,6 +94,7 @@ public class Gripper extends OpMode {
      */
     @Override
     public void init_loop() {
+
 
     }
 
@@ -110,11 +116,11 @@ public class Gripper extends OpMode {
         //telemetry.addData("Status", shootTrigger.getPosition());
         telemetry.addData("Status", "Running: " + runtime.toString());
 
-        if (Gripper_current == GripperMode_closing) {
+        if (Gripper_current == GRIPPER_MODE_CLOSING) {
             Do_closing();
         }
 
-        if (Gripper_current == GripperMode_opening) {
+        if (Gripper_current == GRIPPER_MODE_OPENING) {
             Do_opening();
         }
 
@@ -134,11 +140,20 @@ public class Gripper extends OpMode {
         // check timer to see if we are closed
         // if so set Gripper_current = Gripper_closed
         // warning calling to get server current position is only going to return last set position
+        if (close_timer.time() >= GRIPPER_CLOSE_TIME_MS) {
+            Gripper_current = GRIPPER_MODE_CLOSED;
+            close_timer.reset();
+        }
+
     }
 
     private void Do_opening(){
         //check timer to see if we are open
         // if so set Gripper_current - Gripper_open
+        if (open_timer.time() >= GRIPPER_OPEN_TIME_MS) {
+            Gripper_current = GRIPPER_MODE_OPEN;
+            open_timer.reset();
+        }
     }
 
 
@@ -146,6 +161,14 @@ public class Gripper extends OpMode {
         //set gripper position to closed
         //set gripper mode to closing
         //reset timmer
+        ServoGripperL.setPosition(SERVO_POS_LEFT_CLOSED);
+
+        ServoGripperR.setPosition(SERVO_POS_RIGHT_CLOSED);
+        Gripper_current = GRIPPER_MODE_CLOSED;
+        close_timer.reset();
+        close_timer.startTime();
+
+
     }
 
 
@@ -153,18 +176,25 @@ public class Gripper extends OpMode {
         //set gripper position to open
         //set gripper mode to opening
         //reset open timer
+        ServoGripperL.setPosition(SERVO_POS_LEFT_OPEN);
+
+        ServoGripperR.setPosition(SERVO_POS_RIGHT_OPEN);
+        Gripper_current = GRIPPER_MODE_CLOSED;
+        close_timer.reset();
+        close_timer.startTime();
+
     }
 
     // public method to see if gripper is closed
     public boolean Is_Closed(){
         //Warning calls to hardware getCurrentPosition return the last commanded position
-        return (Gripper_current == GripperMode_closed);
+        return (Gripper_current == GRIPPER_MODE_CLOSED);
     }
 
     // public method to see if gripper is open
     public boolean Is_Open(){
         //Warning calls to hardware getCurrentPosition return the last commanded position
-        return (Gripper_current == GripperMode_open);
+        return (Gripper_current == GRIPPER_MODE_OPEN);
     }
 
  }
