@@ -72,6 +72,9 @@ public class Chassis extends OpMode {
     private DcMotor RDM1 = null;
     private DcMotor RDM2 = null;
 
+
+    public  Stinger stinger = new Stinger();
+
     // The IMU sensor object
     BNO055IMU imu;
     // State used for updating telemetry
@@ -89,6 +92,7 @@ public class Chassis extends OpMode {
 
     @Override
     public void init() {
+
         telemetry.addData("Status", "Initialized");
         composeTelemetry();
         telemetry.log().add("Waiting for start...");
@@ -144,6 +148,9 @@ public class Chassis extends OpMode {
         imu = hardwareMap.get(BNO055IMU.class, "imu");
         imu.initialize(parameters);
 
+        stinger.hardwareMap = hardwareMap;
+        stinger.telemetry = telemetry;
+        stinger.init();
     }
 
     /*
@@ -151,6 +158,7 @@ public class Chassis extends OpMode {
    */
     @Override
     public void init_loop() {
+        stinger.init_loop();
 
     }
 
@@ -160,6 +168,7 @@ public class Chassis extends OpMode {
     /*
      * Code to run REPEATEDLY after the driver hits PLAY but before they hit STOP
      */
+        stinger.loop();
         if (ChassisMode_Stop == ChassisMode_Current) {
             Dostop();
         }
@@ -302,7 +311,7 @@ public class Chassis extends OpMode {
         */
     @Override
     public void start() {
-
+        stinger.start();
         runtime.reset();
         //shootTrigger.setPosition(Settings.reset);
     }
@@ -360,6 +369,8 @@ public class Chassis extends OpMode {
     String formatDegrees(double degrees){
         return String.format(Locale.getDefault(), "%.1f", AngleUnit.DEGREES.normalize(degrees));
     }
+
+
 }
 
 

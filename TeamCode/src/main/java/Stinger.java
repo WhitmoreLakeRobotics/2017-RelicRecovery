@@ -12,22 +12,48 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 @TeleOp(name = "Stinger", group = "")  // @Autonomous(...) is the other common choice
 
 public class Stinger extends OpMode {
+
+    /*
+
+    Life cycle of the stinger
+
+    start in Mode_unknown
+    receive a cmdDoRetract
+       set mode to retracting
+       start timer
+       set position to retracted
+     Loop until StingerTimer > RetractTime_MS
+     set StingerMode_current to StingerMode_Retracted
+
+     Do nothing until next command
+
+     receive cmdDoExtend
+        set mode to extending
+        start timer
+        set position extended
+      Loop until stingerTimer > ExtendTime_MS
+      set StingerMode_current to StingerMode_Extended
+
+      Do nothing until next command
+
+     */
+
     /* Declare OpMode members. */
     private ElapsedTime runtime = new ElapsedTime();
 
-    private int ExtendTime_mS = 500;
-    private int RetractTime_mS = 750;
+    private final int EXTEND_TIME_MS = 500;
+    private final int RETRACT_TIME_MS = 750;
 
     private ElapsedTime Stingertime = new ElapsedTime();
+    public static final int StingerMode_Unknown = 0;
+    public static final int StingerMode_Extending = 1;
+    public static final int StingerMode_Extended = 2;
+    public static final int StingerMode_Retracting = 3;
+    public static final int StingerMode_Retracted = 4;
 
-    public static final int StingerMode_Extending = 0;
-    public static final int StingerMode_Extended = 1;
-    public static final int StingerMode_Retracting = 2;
-    public static final int StringerMode_Retracted = 3;
-    public static final int StingerMode_Idle = 4;
 
     //current mode of operation for chassis
-    private int StingerMode_Current = StingerMode_Idle;
+    private int StingerMode_Current = StingerMode_Unknown;
 
     private Servo ServoStinger = null;
 
@@ -74,6 +100,7 @@ public class Stinger extends OpMode {
      */
     @Override
     public void start() {
+        cmdDoRetract();
         runtime.reset();
     }
 
@@ -83,12 +110,10 @@ public class Stinger extends OpMode {
     @Override
     public void loop() {
         telemetry.addData("Status", "Running: " + runtime.toString());
-        if (StingerMode_Current == StingerMode_Idle) {
 
 
-        }
-        if (StingerMode_Current == StringerMode_Retracted) {
-            DoRetract();
+        if (StingerMode_Current == StingerMode_Extending) {
+            DoExtending();
 
         }
 
@@ -104,30 +129,18 @@ public class Stinger extends OpMode {
     public void stop() {
     }
 
-    //Executes the command extend
-
-    private void DoExtend() {
-
-    }
 
     private void DoExtending() {
-
-    }
-
-    //Executes the command retract
-    private void DoRetract() {
-        if (ServoStinger.getPosition() != StingerPos_Retracted) {
-            ServoStinger.setPosition(StingerPos_Retracted);
-            StingerMode_Current = StingerMode_Retracting;
+        if (Stingertime.time() >= EXTEND_TIME_MS) {
+            StingerMode_Current = StingerMode_Extended;
             Stingertime.reset();
-            Stingertime.startTime();
-
         }
     }
 
+
     private void DoRetracting() {
-        if (Stingertime.time() >= RetractTime_mS) {
-            StingerMode_Current = StingerMode_Idle;
+        if (Stingertime.time() >= RETRACT_TIME_MS) {
+            StingerMode_Current = StingerMode_Retracted;
             Stingertime.reset();
         }
     }
@@ -135,22 +148,32 @@ public class Stinger extends OpMode {
     //Gives the command extend
     public void cmdDoExtend() {
 
+        ServoStinger.setPosition(StingerPos_Extended);
+        StingerMode_Current = StingerMode_Extending;
+        Stingertime.reset();
+        Stingertime.startTime();
+
     }
 
     //Gives the command retract
     public void cmdDoRetract() {
+        ServoStinger.setPosition(StingerPos_Retracted);
+        StingerMode_Current = StingerMode_Retracting;
+        Stingertime.reset();
+        Stingertime.startTime();
 
     }
 
     //returns true if stinger is retracted
     public boolean IsRetracted() {
 
-        return false;
+        return (StingerMode_Current == StingerMode_Retracted);
     }
 
     //returns true if stinger is extended
     public boolean IsExtended() {
-        return false;
+
+        return (StingerMode_Current == StingerMode_Extended);
     }
 
 
