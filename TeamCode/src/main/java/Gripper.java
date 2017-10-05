@@ -72,7 +72,7 @@ public class Gripper extends OpMode {
      */
     @Override
     public void init() {
-        telemetry.addData("Status", "Initialized");
+        telemetry.addData("Status", "Gripper Initialized");
 
         ServoGripperL = hardwareMap.servo.get("Servo_GripperL");
         ServoGripperR = hardwareMap.servo.get("Servo_GripperR");
