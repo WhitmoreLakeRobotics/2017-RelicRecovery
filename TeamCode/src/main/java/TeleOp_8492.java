@@ -72,8 +72,14 @@ public class TeleOp_8492 extends OpMode {
         robotChassis.doTeleOp(joystickMath(gamepad1.left_stick_y),
                 joystickMath(gamepad1.right_stick_y));
 
-
+        if(gamepad1.a &&   ! gamepad1.b){
+            robotChassis.stinger.cmdDoExtend();
+        }
+        if(gamepad1.b &&   ! gamepad1.a){
+            robotChassis.stinger.cmdDoRetract();
+        }
     }
+
 
     /*
      * Code to run ONCE after the driver hits STOP
