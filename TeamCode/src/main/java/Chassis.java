@@ -1,14 +1,10 @@
-/**
+/*
  * Created by mg15 on 9/20/17.
  */
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-
-/**
- * Created by mg15 on 9/12/17.
- */
 
 //package org.firstinspires.ftc.teamcode;
 
@@ -24,6 +20,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
 import java.util.Locale;
+
 @TeleOp(name = "Chassis", group = "Chassis")
 
 public class Chassis extends OpMode {
@@ -73,7 +70,7 @@ public class Chassis extends OpMode {
     private DcMotor RDM2 = null;
 
 
-    public  Stinger stinger = new Stinger();
+    public Stinger stinger = new Stinger();
 
     // The IMU sensor object
     BNO055IMU imu;
@@ -102,24 +99,26 @@ public class Chassis extends OpMode {
         LDM2 = hardwareMap.dcMotor.get("LDM2");
         RDM2 = hardwareMap.dcMotor.get("RDM2");
 
-        if(LDM1 == null){
+        if (LDM1 == null) {
             telemetry.log().add("LDM1 is null...");
         }
 
-        if(LDM2 == null){
+        if (LDM2 == null) {
             telemetry.log().add("LDM2 is null...");
         }
 
-        if(RDM1 == null){
+        if (RDM1 == null) {
             telemetry.log().add("RDM1 is null...");
         }
 
-        if(RDM2 == null){
+        if (RDM2 == null) {
             telemetry.log().add("RDM2 is null...");
         }
 
         LDM1.setDirection(DcMotor.Direction.REVERSE);
         LDM2.setDirection(DcMotor.Direction.REVERSE);
+        LDM1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+
 
         LDM1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         RDM1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -130,6 +129,12 @@ public class Chassis extends OpMode {
         RDM1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         LDM2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         RDM2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        LDM1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        LDM2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+
+        RDM1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        RDM2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
 
         // Set up the parameters with which we will use our IMU. Note that integration
         // algorithm here just reports accelerations to the logcat log; it doesn't actually
@@ -291,21 +296,22 @@ public class Chassis extends OpMode {
                 LDM2.getCurrentPosition() +
                 RDM1.getCurrentPosition() +
                 RDM2.getCurrentPosition();
-        double averagetics = totaltics/4;
-        double inches = averagetics/ticksPerInch;
+        double averagetics = totaltics / 4;
+        double inches = averagetics / ticksPerInch;
 
         return inches;
     }
 
-    public void doTeleOp(double LDMpower,double RDMpower){
+    public void doTeleOp(double LDMpower, double RDMpower) {
 
 
-        ChassisMode_Current=ChassisMode_TeleOp;
+        ChassisMode_Current = ChassisMode_TeleOp;
         LDM1.setPower(LDMpower);
         LDM2.setPower(LDMpower);
         RDM1.setPower(RDMpower);
         RDM2.setPower(RDMpower);
     }
+
     /*
         * Code to run ONCE when the driver hits PLAY
         */
@@ -313,46 +319,65 @@ public class Chassis extends OpMode {
     public void start() {
         stinger.start();
         runtime.reset();
-        //shootTrigger.setPosition(Settings.reset);
+
     }
+
+
+    @Override
+    public void stop() {
+
+        //go to brake mode at the end of program
+        LDM1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        LDM2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        RDM1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        RDM2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+    }
+
     void composeTelemetry() {
 
         // At the beginning of each telemetry update, grab a bunch of data
         // from the IMU that we will then display in separate lines.
-        telemetry.addAction(new Runnable() { @Override public void run()
-        {
-            // Acquiring the angles is relatively expensive; we don't want
-            // to do that in each of the three items that need that info, as that's
-            // three times the necessary expense.
-            angles   = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
-        }
+        telemetry.addAction(new Runnable() {
+            @Override
+            public void run() {
+                // Acquiring the angles is relatively expensive; we don't want
+                // to do that in each of the three items that need that info, as that's
+                // three times the necessary expense.
+                angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+            }
         });
 
         telemetry.addLine()
                 .addData("status", new Func<String>() {
-                    @Override public String value() {
+                    @Override
+                    public String value() {
                         return imu.getSystemStatus().toShortString();
                     }
                 })
                 .addData("calib", new Func<String>() {
-                    @Override public String value() {
+                    @Override
+                    public String value() {
                         return imu.getCalibrationStatus().toString();
                     }
                 });
 
         telemetry.addLine()
                 .addData("heading", new Func<String>() {
-                    @Override public String value() {
+                    @Override
+                    public String value() {
                         return formatAngle(angles.angleUnit, angles.firstAngle);
                     }
                 })
                 .addData("roll", new Func<String>() {
-                    @Override public String value() {
+                    @Override
+                    public String value() {
                         return formatAngle(angles.angleUnit, angles.secondAngle);
                     }
                 })
                 .addData("pitch", new Func<String>() {
-                    @Override public String value() {
+                    @Override
+                    public String value() {
                         return formatAngle(angles.angleUnit, angles.thirdAngle);
                     }
                 });
@@ -366,7 +391,7 @@ public class Chassis extends OpMode {
         return formatDegrees(AngleUnit.DEGREES.fromUnit(angleUnit, angle));
     }
 
-    String formatDegrees(double degrees){
+    String formatDegrees(double degrees) {
         return String.format(Locale.getDefault(), "%.1f", AngleUnit.DEGREES.normalize(degrees));
     }
 
