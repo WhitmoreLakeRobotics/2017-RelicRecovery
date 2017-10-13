@@ -71,7 +71,7 @@ public class Chassis extends OpMode {
 
 
     public Stinger stinger = new Stinger();
-
+public Gripper gripper = new Gripper();
     // The IMU sensor object
     BNO055IMU imu;
     // State used for updating telemetry
@@ -156,6 +156,9 @@ public class Chassis extends OpMode {
         stinger.hardwareMap = hardwareMap;
         stinger.telemetry = telemetry;
         stinger.init();
+        gripper.hardwareMap = hardwareMap;
+        gripper.telemetry = telemetry;
+        gripper.init();
     }
 
     /*
@@ -164,7 +167,7 @@ public class Chassis extends OpMode {
     @Override
     public void init_loop() {
         stinger.init_loop();
-
+        gripper.init_loop();
     }
 
 
@@ -174,6 +177,7 @@ public class Chassis extends OpMode {
      * Code to run REPEATEDLY after the driver hits PLAY but before they hit STOP
      */
         stinger.loop();
+        gripper.loop();
         if (ChassisMode_Stop == ChassisMode_Current) {
             Dostop();
         }
@@ -185,7 +189,12 @@ public class Chassis extends OpMode {
         if (ChassisMode_Turn == ChassisMode_Current) {
             DoTurn();
         }
+
+
+
         telemetry.update();
+
+
     }
 
     private void Dostop() {
@@ -318,6 +327,7 @@ public class Chassis extends OpMode {
     @Override
     public void start() {
         stinger.start();
+        gripper.start();
         runtime.reset();
 
     }

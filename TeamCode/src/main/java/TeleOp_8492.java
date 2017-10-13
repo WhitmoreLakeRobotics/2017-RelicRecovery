@@ -72,11 +72,20 @@ public class TeleOp_8492 extends OpMode {
         robotChassis.doTeleOp(joystickMath(gamepad1.left_stick_y),
                 joystickMath(gamepad1.right_stick_y));
 
-        if(gamepad1.a &&   ! gamepad1.b){
+        if(gamepad2.a &&   ! gamepad2.b){
             robotChassis.stinger.cmdDoExtend();
         }
-        if(gamepad1.b &&   ! gamepad1.a){
+        if(gamepad2.b &&   ! gamepad2.a){
             robotChassis.stinger.cmdDoRetract();
+        }
+   if(gamepad2.right_bumper) {
+       robotChassis.gripper.cmd_Close();
+
+   }
+        if(gamepad2.left_bumper) {
+            telemetry.addData("Status", "gripper left: " + runtime.toString());
+            robotChassis.gripper.cmd_Open();
+
         }
     }
 
