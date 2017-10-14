@@ -19,22 +19,22 @@ import com.qualcomm.robotcore.hardware.GyroSensor;
 
 public class RecoveryZone extends OpMode {
 
-
-    public static int stage_1GripBlock = 10;
     public static int stage_0PreStart = 0;
-    public static int stage_2StingerExtend = 10;
-    public static int stage_3ReadPlatformColor = 2;
-    public static int stage_4ReadColorOfjewell = 5;
-    public static int stage_5Knockjewelloff = 10;
-    public static int stage_6LiftStinger = 10;
-    public static int stage_7Turn1 = 20;
-    public static int stage_8MoveFoward = 12;
-    public static int stage_9Turn2 = 20;
-    public static int stage_10MoveFoward7 = 20;
-    public static int stage_11DropBlock = 10;
-    public static int stage_12MoveBack1 = 5;
+    public static int stage_1GripBlock = 10;
+    public static int stage_2StingerExtend = 20;
+    public static int stage_3ReadPlatformColor = 30;
+    public static int stage_4ReadColorOfjewell = 40;
+    public static int stage_5Knockjewelloff = 50;
+    public static int stage_6LiftStinger = 60;
+    public static int stage_7Turn1 = 70;
+    public static int stage_8MoveFoward = 80;
+    public static int stage_9Turn2 = 90;
+    public static int stage_10MoveFoward7 = 100;
+    public static int stage_11DropBlock = 110;
+    public static int stage_12MoveBack1 = 120;
+    public static int stage_15Done = 150;
 
-    int stage = stage_0PreStart;
+    int CurrentStage = stage_0PreStart;
 
 
 
@@ -95,11 +95,18 @@ public class RecoveryZone extends OpMode {
         telemetry.addData("Status", "Running: " + runtime.toString());
         robotChassis.loop();
 
-        if (stage == stage_0PreStart) {
+        if (CurrentStage == stage_0PreStart) {
             //Start Stage 1
-            stage = stage_1GripBlock;
-            robotChassis.cmdDrive(.5, 0, stage_8MoveFoward);
+            CurrentStage = stage_8MoveFoward;
+        }
+
+
+        if(CurrentStage == stage_8MoveFoward){
+
+            //cmdDrive(double speed,int direction,double distance in inches)
+            robotChassis.cmdDrive(.5, 0,12);
             robotChassis.stop();
+            CurrentStage = stage_15Done;
         }
 
 

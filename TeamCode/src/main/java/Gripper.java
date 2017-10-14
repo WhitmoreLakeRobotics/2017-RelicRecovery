@@ -59,9 +59,9 @@ public class Gripper extends OpMode {
     // Servo Position variables
     // Servo positions are 0 to 1  and represent positons 0 to 180 degrees
     // this means that .5 is about 90 degrees
-    private final double SERVO_POS_LEFT_OPEN = .5;
-    private final double SERVO_POS_LEFT_CLOSED = 1;
-    private final double SERVO_POS_RIGHT_OPEN = .5;
+    private final double SERVO_POS_LEFT_OPEN = 0;
+    private final double SERVO_POS_LEFT_CLOSED = -1;
+    private final double SERVO_POS_RIGHT_OPEN = 0;
     private final double SERVO_POS_RIGHT_CLOSED = 1;
 
     private Servo ServoGripperL = null;

@@ -19,6 +19,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
+import java.lang.annotation.Target;
 import java.util.Locale;
 
 @TeleOp(name = "Chassis", group = "Chassis")
@@ -40,6 +41,7 @@ public class Chassis extends OpMode {
 
     //Gyro KP for driving straight
     public static final double chassis_KPGyroStraight = .02;
+
 
     //for truning this is the tolerance of trun in degrees
     public static final int chassis_GyroHeadingTol = 2;
@@ -68,6 +70,7 @@ public class Chassis extends OpMode {
     private DcMotor LDM2 = null;
     private DcMotor RDM1 = null;
     private DcMotor RDM2 = null;
+
 
 
     public Stinger stinger = new Stinger();
@@ -153,12 +156,18 @@ public Gripper gripper = new Gripper();
         imu = hardwareMap.get(BNO055IMU.class, "imu");
         imu.initialize(parameters);
 
+
+
         stinger.hardwareMap = hardwareMap;
         stinger.telemetry = telemetry;
         stinger.init();
         gripper.hardwareMap = hardwareMap;
         gripper.telemetry = telemetry;
         gripper.init();
+
+
+
+
     }
 
     /*
@@ -221,7 +230,7 @@ public Gripper gripper = new Gripper();
         /*
         * executes the logic for a single scan of driving straight by gyro
         */
-        double deltaHeading = TargetHeadingDeg - getGyroHeading();  //NEED TO DETEMINE ACTUAL VALUE
+        double deltaHeading = TargetHeadingDeg - getGyroHeading();
 
         double leftPower = TargetMotorPowerLeft + (deltaHeading * chassis_KPGyroStraight);
         double rightPower = TargetMotorPowerRight - (deltaHeading * chassis_KPGyroStraight);
@@ -275,6 +284,10 @@ public Gripper gripper = new Gripper();
         /*
         called by other opmodes to start a drive straight by gyro command
          */
+        TargetHeadingDeg = headingDeg;
+        TargetMotorPowerLeft = speed;
+        TargetMotorPowerRight = speed;
+        TargetDistanceInches = getEncoderInches() + inches;
         DoDrive();
         runtime.reset();
         cmdComplete = false;
@@ -286,10 +299,15 @@ public Gripper gripper = new Gripper();
     }
 
 
-    public int getGyroHeading() {
+    public double getGyroHeading() {
         //Read the gyro and return its reading in degrees
 
-        return TargetHeadingDeg;
+        //this should pull heading angle from onboard IMU Gyro
+        //https://ftcforum.usfirst.org/forum/ftc-technology/49904-help-with-rev-expansion-hub-integrated-gyro
+        //hint: composeTelemetry() also captures this information below.
+        float heading = imu.getAngularOrientation().firstAngle;
+
+        return heading ;
     }
 
 
