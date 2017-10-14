@@ -275,6 +275,7 @@ public Gripper gripper = new Gripper();
         /*
         called by other opmodes to start a drive straight by gyro command
          */
+        DoDrive();
         runtime.reset();
         cmdComplete = false;
     }

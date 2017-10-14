@@ -3,6 +3,7 @@
 */
 
 
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -14,9 +15,32 @@ import com.qualcomm.robotcore.hardware.GyroSensor;
 
 
 
-@TeleOp(name = "BlankOpMode", group = "")  // @Autonomous(...) is the other common choice
+@Autonomous(name = "RecoveryZone", group = "")  // @Autonomous(...) is the other common choice
 
-public class BlankOpMode extends OpMode {
+public class RecoveryZone extends OpMode {
+
+
+    public static int stage_1GripBlock = 10;
+    public static int stage_0PreStart = 0;
+    public static int stage_2StingerExtend = 10;
+    public static int stage_3ReadPlatformColor = 2;
+    public static int stage_4ReadColorOfjewell = 5;
+    public static int stage_5Knockjewelloff = 10;
+    public static int stage_6LiftStinger = 10;
+    public static int stage_7Turn1 = 20;
+    public static int stage_8MoveFoward = 12;
+    public static int stage_9Turn2 = 20;
+    public static int stage_10MoveFoward7 = 20;
+    public static int stage_11DropBlock = 10;
+    public static int stage_12MoveBack1 = 5;
+
+    int stage = stage_0PreStart;
+
+
+
+
+    Chassis robotChassis = new Chassis();
+
     /* Declare OpMode members. */
     private ElapsedTime runtime = new ElapsedTime();
 
@@ -25,7 +49,12 @@ public class BlankOpMode extends OpMode {
      */
     @Override
     public void init() {
+
+        robotChassis.hardwareMap = hardwareMap;
+        robotChassis.telemetry = telemetry;
+        robotChassis.init();
         telemetry.addData("Status", "Initialized");
+
 
         /* eg: Initialize the hardware variables. Note that the strings used here as parameters
          * to 'get' must correspond to the names assigned during the robot configuration
@@ -64,6 +93,15 @@ public class BlankOpMode extends OpMode {
     public void loop() {
         //telemetry.addData("Status", shootTrigger.getPosition());
         telemetry.addData("Status", "Running: " + runtime.toString());
+        robotChassis.loop();
+
+        if (stage == stage_0PreStart) {
+            //Start Stage 1
+            stage = stage_1GripBlock;
+            robotChassis.cmdDrive(.5, 0, stage_8MoveFoward);
+            robotChassis.stop();
+        }
+
 
     }
 
