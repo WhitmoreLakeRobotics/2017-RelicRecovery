@@ -20,6 +20,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
 import java.lang.annotation.Target;
+import java.math.MathContext;
 import java.util.Locale;
 
 @TeleOp(name = "Chassis", group = "Chassis")
@@ -72,9 +73,8 @@ public class Chassis extends OpMode {
     private DcMotor RDM2 = null;
 
 
-
     public Stinger stinger = new Stinger();
-public Gripper gripper = new Gripper();
+    public Gripper gripper = new Gripper();
     // The IMU sensor object
     BNO055IMU imu;
     // State used for updating telemetry
@@ -127,6 +127,7 @@ public Gripper gripper = new Gripper();
         RDM1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         LDM2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         RDM2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+       // DriveMotorEncoderReset();
 
         LDM1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         RDM1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -157,15 +158,12 @@ public Gripper gripper = new Gripper();
         imu.initialize(parameters);
 
 
-
         stinger.hardwareMap = hardwareMap;
         stinger.telemetry = telemetry;
         stinger.init();
         gripper.hardwareMap = hardwareMap;
         gripper.telemetry = telemetry;
         gripper.init();
-
-
 
 
     }
@@ -200,9 +198,8 @@ public Gripper gripper = new Gripper();
         }
 
 
-
         telemetry.update();
-
+        telemetry.addLine("chassisMode" + ChassisMode_Current);
 
     }
 
@@ -256,14 +253,16 @@ public Gripper gripper = new Gripper();
         RDM2.setPower(rightPower);
         ChassisMode_Current = ChassisMode_Drive;
 
-        double inchesTraveled = getEncoderInches();
+        double inchesTraveled = Math.abs(getEncoderInches());
+        //if ((inchesTraveled >= (Math.abs(TargetDistanceInches) - chassis_driveTolInches)) ||
+        //        (runtime.milliseconds() > chassis_driveTimeout_mS))
 
-        if ((inchesTraveled >= (TargetDistanceInches - chassis_driveTolInches)) ||
-                (runtime.milliseconds() > chassis_driveTimeout_mS)) {
-            cmdComplete = true;
-            Dostop();
-        }
-
+        if (inchesTraveled >= (Math.abs(TargetDistanceInches) - chassis_driveTolInches))
+            {
+                cmdComplete = true;
+                Dostop();
+            }
+        telemetry.addLine("inchesTraveled = " + inchesTraveled);
 
     }
 
@@ -280,14 +279,22 @@ public Gripper gripper = new Gripper();
         }
     }
 
+    public void DriveMotorEncoderReset() {
+        LDM1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        RDM1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        LDM2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        RDM2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+    }
+
     public void cmdDrive(double speed, int headingDeg, double inches) {
         /*
         called by other opmodes to start a drive straight by gyro command
          */
+       // DriveMotorEncoderReset();
         TargetHeadingDeg = headingDeg;
         TargetMotorPowerLeft = speed;
         TargetMotorPowerRight = speed;
-        TargetDistanceInches = getEncoderInches() + inches;
+        TargetDistanceInches = inches;
         DoDrive();
         runtime.reset();
         cmdComplete = false;
@@ -307,7 +314,7 @@ public Gripper gripper = new Gripper();
         //hint: composeTelemetry() also captures this information below.
         float heading = imu.getAngularOrientation().firstAngle;
 
-        return heading ;
+        return heading;
     }
 
 

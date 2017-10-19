@@ -73,7 +73,7 @@ public class Stinger extends OpMode {
      */
     @Override
     public void init() {
-        telemetry.addData("Status", "Stinger Initialized");
+        //telemetry.addData("Status", "Stinger Initialized");
 
         /* eg: Initialize the hardware variables. Note that the strings used here as parameters
          * to 'get' must correspond to the names assigned during the robot configuration
@@ -121,7 +121,7 @@ public class Stinger extends OpMode {
      */
     @Override
     public void loop() {
-        telemetry.addData("Status", "Running: " + runtime.toString());
+        //telemetry.addData("Status", "Running: " + runtime.toString());
 
 
         if (StingerMode_Current == STINGER_MODE_EXTENDING) {

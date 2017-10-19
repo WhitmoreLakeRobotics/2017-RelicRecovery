@@ -14,29 +14,26 @@ import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.GyroSensor;
 
 
-
 @Autonomous(name = "RecoveryZone", group = "")  // @Autonomous(...) is the other common choice
 
 public class RecoveryZone extends OpMode {
 
     public static int stage_0PreStart = 0;
-    public static int stage_1GripBlock = 10;
-    public static int stage_2StingerExtend = 20;
-    public static int stage_3ReadPlatformColor = 30;
-    public static int stage_4ReadColorOfjewell = 40;
-    public static int stage_5Knockjewelloff = 50;
-    public static int stage_6LiftStinger = 60;
-    public static int stage_7Turn1 = 70;
-    public static int stage_8MoveFoward = 80;
-    public static int stage_9Turn2 = 90;
-    public static int stage_10MoveFoward7 = 100;
-    public static int stage_11DropBlock = 110;
-    public static int stage_12MoveBack1 = 120;
-    public static int stage_15Done = 150;
+    public static int stage_10GripBlock = 10;
+    public static int stage_20StingerExtend = 20;
+    public static int stage_30ReadPlatformColor = 30;
+    public static int stage_40ReadColorOfjewell = 40;
+    public static int stage_50Knockjewelloff = 50;
+    public static int stage_60LiftStinger = 60;
+    public static int stage_70Turn1 = 70;
+    public static int stage_80MoveFoward = 80;
+    public static int stage_90Turn2 = 90;
+    public static int stage_100MoveFoward7 = 100;
+    public static int stage_110DropBlock = 110;
+    public static int stage_120MoveBack1 = 120;
+    public static int stage_150Done = 150;
 
     int CurrentStage = stage_0PreStart;
-
-
 
 
     Chassis robotChassis = new Chassis();
@@ -74,6 +71,7 @@ public class RecoveryZone extends OpMode {
      */
     @Override
     public void init_loop() {
+        robotChassis.init_loop();
     }
 
     /*
@@ -81,7 +79,7 @@ public class RecoveryZone extends OpMode {
      */
     @Override
     public void start() {
-
+        robotChassis.start();
         runtime.reset();
         //shootTrigger.setPosition(Settings.reset);
     }
@@ -92,21 +90,21 @@ public class RecoveryZone extends OpMode {
     @Override
     public void loop() {
         //telemetry.addData("Status", shootTrigger.getPosition());
-        telemetry.addData("Status", "Running: " + runtime.toString());
+        //telemetry.addData("Status", "Running: " + runtime.toString());
         robotChassis.loop();
 
         if (CurrentStage == stage_0PreStart) {
             //Start Stage 1
-            CurrentStage = stage_8MoveFoward;
+            CurrentStage = stage_80MoveFoward;
         }
 
 
-        if(CurrentStage == stage_8MoveFoward){
+        if (CurrentStage == stage_80MoveFoward) {
 
             //cmdDrive(double speed,int direction,double distance in inches)
-            robotChassis.cmdDrive(.5, 0,12);
-            robotChassis.stop();
-            CurrentStage = stage_15Done;
+            robotChassis.cmdDrive(.5, 0, 12);
+            CurrentStage = stage_150Done;
+
         }
 
 
@@ -117,6 +115,7 @@ public class RecoveryZone extends OpMode {
      */
     @Override
     public void stop() {
+        robotChassis.stop();
     }
 
- }
+}

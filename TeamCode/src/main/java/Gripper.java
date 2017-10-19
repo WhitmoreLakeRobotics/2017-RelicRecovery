@@ -43,8 +43,8 @@ public class Gripper extends OpMode {
     private ElapsedTime open_timer = new ElapsedTime();
 
     //Time delays for opening and closing the gripper... These will need to be tuned
-    private final int GRIPPER_OPEN_TIME_MS = 500;
-    private final int GRIPPER_CLOSE_TIME_MS = 750;
+    private final int GRIPPER_OPEN_TIME_MS = 5000;
+    private final int GRIPPER_CLOSE_TIME_MS = 7500;
 
 
     // Gripper states
@@ -72,7 +72,7 @@ public class Gripper extends OpMode {
      */
     @Override
     public void init() {
-        telemetry.addData("Status", "Gripper Initialized");
+        //telemetry.addData("Status", "Gripper Initialized");
 
 
         ServoGripperR = hardwareMap.servo.get("Servo_GripperR");
@@ -104,7 +104,7 @@ public class Gripper extends OpMode {
      */
     @Override
     public void start() {
-        cmd_Open();
+        cmd_Close();
         runtime.reset();
 
     }
@@ -115,8 +115,8 @@ public class Gripper extends OpMode {
     @Override
     public void loop() {
         //telemetry.addData("Status", shootTrigger.getPosition());
-        telemetry.addData("Status", "gripper java Running: " + runtime.toString());
-
+//        telemetry.addData("Status", "gripper java Running: " + runtime.toString());
+        //telemetry.addData("Status", "gripper : Gripper_current = " + Gripper_current);
         if (Gripper_current == GRIPPER_MODE_CLOSING) {
             Do_closing();
         }
@@ -145,6 +145,7 @@ public class Gripper extends OpMode {
             Gripper_current = GRIPPER_MODE_CLOSED;
             close_timer.reset();
         }
+        //telemetry.addData("Status", "gripper : close_timer = " + close_timer);
 
     }
 
@@ -152,9 +153,10 @@ public class Gripper extends OpMode {
         //check timer to see if we are open
         // if so set Gripper_current - Gripper_open
         if (open_timer.time() >= GRIPPER_OPEN_TIME_MS) {
-            Gripper_current = GRIPPER_MODE_OPENING;
+            Gripper_current = GRIPPER_MODE_OPEN;
             open_timer.reset();
         }
+        //telemetry.addData("Status", "gripper : open_timer = " + close_timer);
     }
 
 
@@ -180,7 +182,7 @@ public class Gripper extends OpMode {
         ServoGripperL.setPosition(SERVO_POS_LEFT_OPEN);
 
         ServoGripperR.setPosition(SERVO_POS_RIGHT_OPEN);
-        Gripper_current = GRIPPER_MODE_OPEN;
+        Gripper_current = GRIPPER_MODE_OPENING;
         open_timer.reset();
         open_timer.startTime();
 
