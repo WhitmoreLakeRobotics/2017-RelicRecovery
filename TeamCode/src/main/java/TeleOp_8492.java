@@ -18,6 +18,13 @@ public class TeleOp_8492 extends OpMode {
     private ElapsedTime runtime = new ElapsedTime();
     Chassis robotChassis = new Chassis();
 
+
+    //button latches
+    boolean gamepad2_a_pressed = false;
+    boolean gamepad2_b_pressed = false;
+    boolean gamepad2_x_pressed = false;
+    boolean gamepad2_y_pressed = false;
+
     /*
      * Code to run ONCE when the driver hits INIT
      */
@@ -46,13 +53,15 @@ public class TeleOp_8492 extends OpMode {
      */
     @Override
     public void init_loop() {
+
         robotChassis.init_loop();
     }
 
 
+
     /*
-     * Code to run ONCE when the driver hits PLAY
-     */
+         * Code to run ONCE when the driver hits PLAY
+         */
     @Override
     public void start() {
         robotChassis.start();
@@ -87,6 +96,52 @@ public class TeleOp_8492 extends OpMode {
             robotChassis.gripper.cmd_Open();
 
         }
+
+
+        // Lifter buttons control
+
+        // Requirements for triggering a command to move the lift
+
+        // 1) only 1 button is pressed.
+        // 2) The button must released to get another command
+        //
+        if (gamepad2.a && ! gamepad2_a_pressed && ! gamepad2.b && ! gamepad2.x && ! gamepad2.y){
+            robotChassis.lifter.cmd_MoveToTarget(robotChassis.lifter.LIFTPOS_BOTTOM);
+            gamepad2_a_pressed = true;
+            gamepad2_b_pressed = false;
+            gamepad2_x_pressed = false;
+            gamepad2_y_pressed = false;
+        }
+
+        if (gamepad2.b && ! gamepad2_b_pressed && ! gamepad2.a && ! gamepad2.x && ! gamepad2.y){
+            robotChassis.lifter.cmd_MoveToTarget(robotChassis.lifter.LIFTPOS_CARRY);
+            gamepad2_a_pressed = false;
+            gamepad2_b_pressed = true;
+            gamepad2_x_pressed = false;
+            gamepad2_y_pressed = false;;
+        }
+
+        if (gamepad2.x && ! gamepad2_x_pressed && ! gamepad2.a && ! gamepad2.b && ! gamepad2.y){
+            robotChassis.lifter.cmd_MoveToTarget(robotChassis.lifter.LIFTPOS_STACK1);
+            gamepad2_a_pressed = false;
+            gamepad2_b_pressed = false;
+            gamepad2_x_pressed = true;
+            gamepad2_y_pressed = false;;
+        }
+        if (gamepad2.y && ! gamepad2_y_pressed && ! gamepad2.a && ! gamepad2.b && ! gamepad2.x){
+            robotChassis.lifter.cmd_MoveToTarget(robotChassis.lifter.LIFTPOS_STACK2);
+            gamepad2_a_pressed = false;
+            gamepad2_b_pressed = false;
+            gamepad2_x_pressed = false;
+            gamepad2_y_pressed = true;
+        }
+
+
+
+
+        robotChassis.lifter.cmdStickControl(joystickMath(gamepad2.right_stick_x));
+
+
     }
 
 

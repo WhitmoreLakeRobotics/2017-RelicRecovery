@@ -40,6 +40,13 @@ public class Chassis extends OpMode {
     private int ChassisMode_Current = ChassisMode_Stop;
 
 
+    //Max speeds based on how high the lifter is.  Only in TeleOp
+    public static final double ChassisPower_BOTTOM_MAX = 1;
+    public static final double ChassisPower_CARRY_MAX = 1;
+    public static final double ChassisPower_STACK1_MAX = .75;
+    public static final double ChassisPower_STACK2_MAX = .5;
+
+
     //Gyro KP for driving straight
     public static final double chassis_KPGyroStraight = .02;
 
@@ -75,6 +82,8 @@ public class Chassis extends OpMode {
 
     public Stinger stinger = new Stinger();
     public Gripper gripper = new Gripper();
+    public Lifter  lifter = new Lifter();
+
     // The IMU sensor object
     BNO055IMU imu;
     // State used for updating telemetry
@@ -127,7 +136,7 @@ public class Chassis extends OpMode {
         RDM1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         LDM2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         RDM2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-       // DriveMotorEncoderReset();
+        // DriveMotorEncoderReset();
 
         LDM1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         RDM1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -161,10 +170,14 @@ public class Chassis extends OpMode {
         stinger.hardwareMap = hardwareMap;
         stinger.telemetry = telemetry;
         stinger.init();
+
         gripper.hardwareMap = hardwareMap;
         gripper.telemetry = telemetry;
         gripper.init();
 
+        lifter.hardwareMap = hardwareMap;
+        lifter.telemetry = telemetry;
+        lifter.init();
 
     }
 
@@ -175,6 +188,7 @@ public class Chassis extends OpMode {
     public void init_loop() {
         stinger.init_loop();
         gripper.init_loop();
+        lifter.init_loop();
     }
 
 
@@ -185,6 +199,8 @@ public class Chassis extends OpMode {
      */
         stinger.loop();
         gripper.loop();
+        lifter.loop();
+
         if (ChassisMode_Stop == ChassisMode_Current) {
             Dostop();
         }
@@ -232,11 +248,11 @@ public class Chassis extends OpMode {
         double leftPower = TargetMotorPowerLeft + (deltaHeading * chassis_KPGyroStraight);
         double rightPower = TargetMotorPowerRight - (deltaHeading * chassis_KPGyroStraight);
 
-        if (leftPower < 0) {
-            leftPower = 0;
+        if (leftPower < -1) {
+            leftPower = -1;
         }
-        if (rightPower < 0) {
-            rightPower = 0;
+        if (rightPower < -1) {
+            rightPower = -1;
         }
 
         if (leftPower > 1) {
@@ -257,11 +273,10 @@ public class Chassis extends OpMode {
         //if ((inchesTraveled >= (Math.abs(TargetDistanceInches) - chassis_driveTolInches)) ||
         //        (runtime.milliseconds() > chassis_driveTimeout_mS))
 
-        if (inchesTraveled >= (Math.abs(TargetDistanceInches) - chassis_driveTolInches))
-            {
-                cmdComplete = true;
-                Dostop();
-            }
+        if (inchesTraveled >= (Math.abs(TargetDistanceInches) - chassis_driveTolInches)) {
+            cmdComplete = true;
+            Dostop();
+        }
         telemetry.addLine("inchesTraveled = " + inchesTraveled);
 
     }
@@ -284,13 +299,19 @@ public class Chassis extends OpMode {
         RDM1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         LDM2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         RDM2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        LDM1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        RDM1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        LDM2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        RDM2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
     }
 
     public void cmdDrive(double speed, int headingDeg, double inches) {
         /*
         called by other opmodes to start a drive straight by gyro command
          */
-       // DriveMotorEncoderReset();
+         DriveMotorEncoderReset();
         TargetHeadingDeg = headingDeg;
         TargetMotorPowerLeft = speed;
         TargetMotorPowerRight = speed;
@@ -298,6 +319,11 @@ public class Chassis extends OpMode {
         DoDrive();
         runtime.reset();
         cmdComplete = false;
+
+    }
+
+    public boolean getcmdComplete() {
+        return (cmdComplete);
     }
 
     public void cmdTurn(double LSpeed, double RSpeed, int NewHeadingDeg) {
@@ -312,9 +338,11 @@ public class Chassis extends OpMode {
         //this should pull heading angle from onboard IMU Gyro
         //https://ftcforum.usfirst.org/forum/ftc-technology/49904-help-with-rev-expansion-hub-integrated-gyro
         //hint: composeTelemetry() also captures this information below.
-        float heading = imu.getAngularOrientation().firstAngle;
 
-        return heading;
+        angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+
+        //return formatAngle(angles.angleUnit, angles.firstAngle);
+        return angles.firstAngle;
     }
 
 
@@ -327,10 +355,10 @@ public class Chassis extends OpMode {
         // average the distance traveled by each wheel to determine the distance travled by the
         // robot
 
-        int totaltics = LDM1.getCurrentPosition() +
-                LDM2.getCurrentPosition() +
-                RDM1.getCurrentPosition() +
-                RDM2.getCurrentPosition();
+        int totaltics = Math.abs(LDM1.getCurrentPosition()) +
+                Math.abs(LDM2.getCurrentPosition()) +
+                Math.abs(RDM1.getCurrentPosition()) +
+                Math.abs(RDM2.getCurrentPosition());
         double averagetics = totaltics / 4;
         double inches = averagetics / ticksPerInch;
 
@@ -339,12 +367,39 @@ public class Chassis extends OpMode {
 
     public void doTeleOp(double LDMpower, double RDMpower) {
 
-
         ChassisMode_Current = ChassisMode_TeleOp;
-        LDM1.setPower(LDMpower);
-        LDM2.setPower(LDMpower);
-        RDM1.setPower(RDMpower);
-        RDM2.setPower(RDMpower);
+
+        double LDMpower_signum = Math.signum(LDMpower);
+        double RDMpower_signum = Math.signum(RDMpower);
+
+        double LDM_new_Power = Math.abs(LDMpower);
+        double RDM_new_Power = Math.abs(RDMpower);
+
+        //If we are at the Stack1 pos or higher clamp the powers
+        if (lifter.getLIFTPOS_Ticks() > Lifter.LIFTPOS_STACK1){
+            if (LDM_new_Power > ChassisPower_STACK1_MAX){
+                LDM_new_Power = ChassisPower_STACK1_MAX;
+            }
+            if (RDM_new_Power > ChassisPower_STACK1_MAX){
+                RDM_new_Power = ChassisPower_STACK1_MAX;
+            }
+        }
+
+        //If we are at the Stack2 pos or higher clamp the powers
+        if (lifter.getLIFTPOS_Ticks() > Lifter.LIFTPOS_STACK2){
+            if (LDM_new_Power > ChassisPower_STACK2_MAX){
+                LDM_new_Power = ChassisPower_STACK2_MAX;
+            }
+            if (RDM_new_Power > ChassisPower_STACK2_MAX){
+                RDM_new_Power = ChassisPower_STACK2_MAX;
+            }
+        }
+
+        //Set the power based new calculations and clamping
+        LDM1.setPower(LDMpower_signum * LDM_new_Power);
+        LDM2.setPower(LDMpower_signum * LDM_new_Power);
+        RDM1.setPower(RDMpower_signum * RDM_new_Power);
+        RDM2.setPower(RDMpower_signum * RDM_new_Power);
     }
 
     /*
@@ -354,6 +409,7 @@ public class Chassis extends OpMode {
     public void start() {
         stinger.start();
         gripper.start();
+        lifter.start();
         runtime.reset();
 
     }
@@ -368,7 +424,79 @@ public class Chassis extends OpMode {
         RDM1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         RDM2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
+        gripper.stop();
+        stinger.stop();
+        lifter.stop();
+
     }
+
+
+
+
+    public int normalizeGyro(int heading) {
+        // takes the full turns out of heading
+        // gives us values from 0 to 180 for the right side of the robot
+        // and values from 0 to -179 degrees for the left side of the robot
+
+        int degrees = heading % 360;
+
+        if (degrees > 180) {
+            degrees = degrees - 360;
+        }
+
+        if (degrees < -179) {
+            degrees = degrees + 360;
+        }
+
+        return (degrees);
+    }
+
+    public boolean InTol(int currHeading, int desiredHeading, int tol) {
+
+        int upperTol = normalizeGyro(desiredHeading + tol);
+        int lowerTol = normalizeGyro(desiredHeading - tol);
+        int normalCurr = normalizeGyro(currHeading);
+
+        float signumUpperTol = Math.signum(upperTol);
+        float signumLowerTol = Math.signum(lowerTol);
+
+        boolean retValue = false;
+        // works for all positive numbers direction values
+        if (signumUpperTol > 0 && signumLowerTol > 0) {
+            if ((normalCurr >= lowerTol) && (normalCurr <= upperTol)) {
+                retValue = true;
+            }
+        }
+
+        // works for negative values
+        else if (signumUpperTol < 0 && signumLowerTol < 0) {
+            if ((normalCurr >= lowerTol) && (normalCurr <= upperTol)) {
+                retValue = true;
+            }
+        }
+        // mixed values -tol to + tol  This happens at 180 degrees
+        else if ((signumUpperTol < 0) && (signumLowerTol > 0)) {
+            // System.out.println("upperTol " + upperTol + " Current " +
+            // normalCurr + " lowerTol " + lowerTol);
+            if ((Math.abs(normalCurr) >= Math.abs(lowerTol)) &&
+                    (Math.abs(normalCurr) >= Math.abs(upperTol))) {
+                retValue = true;
+            }
+
+        }
+        // mixed values -tol to + tol  This happens at 0 degrees
+        else if ((signumUpperTol > 0) && (signumLowerTol < 0)) {
+            // System.out.println("upperTol " + upperTol + " Current " +
+            // normalCurr + " lowerTol " + lowerTol);
+            if ((Math.abs(normalCurr) <= Math.abs(lowerTol)) &&
+                    (Math.abs(normalCurr) <= Math.abs(upperTol))) {
+                retValue = true;
+            }
+
+        }
+        return (retValue);
+    }
+
 
     void composeTelemetry() {
 

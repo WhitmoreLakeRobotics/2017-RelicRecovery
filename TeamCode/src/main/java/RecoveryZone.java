@@ -96,18 +96,26 @@ public class RecoveryZone extends OpMode {
         if (CurrentStage == stage_0PreStart) {
             //Start Stage 1
             CurrentStage = stage_80MoveFoward;
+            //start the next phase
+            robotChassis.cmdDrive(.5, 0, 12);
         }
 
 
         if (CurrentStage == stage_80MoveFoward) {
-
-            //cmdDrive(double speed,int direction,double distance in inches)
-            robotChassis.cmdDrive(.5, 0, 12);
-            CurrentStage = stage_150Done;
-
+            // Stay in this stage until complete move
+            if (robotChassis.getcmdComplete()) {
+                //Move on to the next stage
+                CurrentStage = stage_120MoveBack1;
+            }
         }
 
-
+        if (CurrentStage == stage_120MoveBack1){
+            robotChassis.cmdDrive(-.5,0,12);
+            CurrentStage = stage_150Done;
+        }
+    if (CurrentStage == stage_150Done){
+        robotChassis.stop();
+    }
     }
 
     /*

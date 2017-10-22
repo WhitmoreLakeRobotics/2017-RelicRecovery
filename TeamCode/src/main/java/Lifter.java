@@ -5,12 +5,10 @@
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.ColorSensor;
-import com.qualcomm.robotcore.hardware.GyroSensor;
+
+import java.util.Set;
 
 
 @TeleOp(name = "Lifter", group = "CHASSIS")  // @Autonomous(...) is the other common choice
@@ -21,23 +19,20 @@ public class Lifter extends OpMode {
 
 
     /*
-    Life cycle of the lifter in auton
+     cmd_MoveToTarget takes the new position in tick counts.
 
-    Start in Unknown position logiclly but we know that we start in Bottom position.
+        It figures out if we need to move up with positive power or Down with negative power
+        It then sets the new LIFTPOS_CmdPos and New LIFTPOWER_current
+        It sets a boolean that we are underStickControl to false
+        It does NOT set the motor Power... That will happen in the next loop if we are allowed
+        to set the next power
+        The buttons are used to very quickly move the lift to a given position with minimal
+        overshoot or undershoot.
 
-    Set encoders to 0 before we move any where.
-
-    in auton we only need to move from bottom position to a carry position
-    and from carry position to bottom
-
-    After the grippers a closed elsewhere issue cmdDoMove_Carry_Pos()
-
-    go to mode LIFTMODE_MOVING_2_CARRY_POS
-    set motor power to LIFT_POWER_UP
-    Then loop until at Carry_Position
-
-    Once in Carry Position do nothing until the command to move to Bottom
-
+      cmdStickControl takes a double from the joystick position
+         It simply sets the new power if it is legal value... AKA it clamps
+         the power to the valid powers that must be between LIFTPOWER_UP and LIFTPOWER_DOWN
+         Stick control allows the driver to adjust and drive by eye
 
 
      */
@@ -46,27 +41,26 @@ public class Lifter extends OpMode {
     //Encoder positions for the lift
     public static final int LIFTPOS_BOTTOM = 0;
     public static final int LIFTPOS_CARRY = 1700;
+    public static final int LIFTPOS_STACK1 = 22000;
+    public static final int LIFTPOS_STACK2 = 30000;
     public static final int LIFTPOS_MAX = 35000;
-    public static final int LIFTPOS_TOL = 500;
+    public static final int LIFTPOS_TOL = 200;
 
-    public static int LIFTPOS_Target = LIFTPOS_BOTTOM;
+    int LIFTPOS_current = LIFTPOS_BOTTOM;   // This is the current tick counts of the lifter
+    int LIFTPOS_CmdPos = LIFTPOS_BOTTOM;    // This is the commanded tick counts of the lifter
 
     //set the lift powers... We will need different speeds for up and down.
     public static final double LIFTPOWER_UP = .75;
     public static final double LIFTPOWER_DOWN = -.5;
+    double LIFTPOWER_current = 0;
 
 
-    //Lifter Modes
-    // we have 3 positions  BOTTOM, 1 and 2
-    public static final int LIFTMODE_UNKNOWN = 0;
-    public static final int LIFTMODE_AT_BOTTOM = 1;
-    public static final int LIFTMODE_MOVING_2_CARRY_POS = 2;
-    public static final int LIFTMODE_AT_CARRY_POS = 3;
-    public static final int LIFTMODE_MOVING_2_BOTTOM = 4;
+    double liftStickDeadBand = .1;
 
-    private int LIFTMODE_current = LIFTMODE_UNKNOWN;
+    boolean cmdComplete = false;
+    boolean underStickControl = false;
 
-    private DcMotor Lift_Motor = null;
+    private DcMotor Motor_Lift = null;
 
 
     /*
@@ -81,14 +75,10 @@ public class Lifter extends OpMode {
          * step (using the FTC Robot Controller app on the phone).
          */
 
-        Lift_Motor = hardwareMap.dcMotor.get("MOTOR_LIFT");
-        Lift_Motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
-        // eg: Set the drive motor directions:
-        // Reverse the motor that runs backwards when connected directly to the battery
-        // leftMotor.setDirection(DcMotor.Direction.FORWARD); // Set to REVERSE if using AndyMark motors
-        //  rightMotor.setDirection(DcMotor.Direction.REVERSE);// Set to FORWARD if using AndyMark motors
-        // telemetry.addData("Status", "Initialized");
+        Motor_Lift = hardwareMap.dcMotor.get("MOTOR_LIFT");
+        Motor_Lift.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        Motor_Lift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        Motor_Lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
     /*
@@ -105,9 +95,8 @@ public class Lifter extends OpMode {
      */
     @Override
     public void start() {
-        Lift_Motor.setPower(0);
+        SetMotorPower(0);
         runtime.reset();
-        //shootTrigger.setPosition(Settings.reset);
     }
 
     /*
@@ -115,117 +104,142 @@ public class Lifter extends OpMode {
      */
     @Override
     public void loop() {
-        //telemetry.addData("Status", shootTrigger.getPosition());
-        telemetry.addData("Status", "Running: " + runtime.toString());
+        //telemetry.addData("Status", "Running: " + runtime.toString());
 
-
-        if (LIFTMODE_current == LIFTMODE_MOVING_2_BOTTOM) {
-            // Moving to position 1 from Bottom
-            do_MovingUp();
+        if (!underStickControl) {
+            testInPosition();
         }
 
-        if (LIFTMODE_current == LIFTMODE_MOVING_2_CARRY_POS) {
-            // Moving to position 2 from position 1
-            do_MovingUp();
-
-        }
+        SetMotorPower(LIFTPOWER_current);
 
     }
 
 
-    private void do_MovingDown() {
-        // if the motor is in within the position window stop it at the correct position
-        // set the mode to the correct position
+    private void SetMotorPower (double newMotorPower) {
+        //Saftey checks for the lift to prevent too low or too high
 
-        int curr_pos = Lift_Motor.getCurrentPosition();
-        double motor_power = LIFTPOWER_DOWN;
+        LIFTPOS_current = Motor_Lift.getCurrentPosition();
 
-        //if in position then stop
-        if (curr_pos > (LIFTPOS_Target - LIFTPOS_TOL) ||
-                curr_pos < (LIFTPOS_Target + LIFTPOS_TOL)) {
-            motor_power = 0;
+        double newPower = newMotorPower;
+
+        // make sure that we do not attempt to move less than BOTTOM
+        if ((LIFTPOS_BOTTOM + LIFTPOS_TOL > LIFTPOS_current) && (newMotorPower < 0)) {
+            newPower = 0;
         }
 
-        //Do not move below the bottom position
-        if (curr_pos < LIFTPOS_BOTTOM) {
-            motor_power = 0;
+        // make sure that we do not attempt a move greater than MAX
+        if ((LIFTPOS_MAX - LIFTPOS_TOL < LIFTPOS_current) && (newMotorPower > 0)) {
+            newPower = 0;
         }
-        Lift_Motor.setPower(motor_power);
+
+        // make sure that we are not going below the bottom
+        if ((LIFTPOS_BOTTOM + LIFTPOS_TOL > LIFTPOS_current) && (LIFTPOWER_current < 0)) {
+            newPower = 0;
+        }
+
+        // make sure that we are not going above the top
+        if ((LIFTPOS_MAX - LIFTPOS_TOL < LIFTPOS_current) && (LIFTPOWER_current > 0)) {
+            newPower = 0;
+        }
+
+        //only set the power to the hardware when it is being changed.
+        if (newPower != LIFTPOWER_current) {
+            LIFTPOWER_current = newPower;
+            Motor_Lift.setPower(newPower);
+        }
     }
 
+    private void testInPosition() {
+        // tests if we are in position and stop if we are;
+        //int curr_pos = Motor_Lift.getCurrentPosition();
 
-    private void do_MovingUp() {
-        // if the motor is within the position window stop it at the correct position
-        // set the mode to the correct position
-
-        int curr_pos = Lift_Motor.getCurrentPosition();
-
-        double motor_power = LIFTPOWER_UP;
-
-        //Stop if in position
-        if (curr_pos > (LIFTPOS_Target - LIFTPOS_TOL) ||
-                curr_pos < (LIFTPOS_Target + LIFTPOS_TOL)) {
-            motor_power = 0;
-
-        }
-        // Do not go above MAX height
-        if (curr_pos > LIFTPOS_MAX) {
-            motor_power = 0;
-        }
-
-        Lift_Motor.setPower(motor_power);
-    }
-
-    public void cmdDo_MoveCarryPos() {
-        //This is used in Auton to move to the carry Pos in Aution to pick the block up
-
-        if (LIFTMODE_current == LIFTMODE_AT_BOTTOM) {
-            LIFTMODE_current = LIFTMODE_MOVING_2_CARRY_POS;
-            LIFTPOS_Target = LIFTPOS_CARRY;
-            Lift_Motor.setPower(LIFTPOWER_UP);
+        if ((LIFTPOS_CmdPos + LIFTPOS_TOL > LIFTPOS_current) &&
+                (LIFTPOS_CmdPos - LIFTPOS_TOL < LIFTPOS_current)) {
+            cmdComplete = true;
+            LIFTPOWER_current = 0;
         }
     }
 
 
-    public void cmdDo_Move_BottomPos() {
-        //This is used in Auton to move to the bottom position to set the blocks down.
+    //driver is using stick control for lifter
+    public void cmdStickControl(double stickPos) {
 
-        if (LIFTMODE_current == LIFTMODE_AT_CARRY_POS) {
-            LIFTMODE_current = LIFTMODE_MOVING_2_BOTTOM;
-            LIFTPOS_Target = LIFTPOS_BOTTOM;
-            Lift_Motor.setPower(LIFTPOWER_DOWN);
+        if (Math.abs(stickPos) < liftStickDeadBand) {
+            // we are inside the deadband do nothing.
+            underStickControl = false;
+            return;
         }
 
+        underStickControl = true;
+        cmdComplete = false;
+        double currPower = stickPos;
+
+        //clamp the power fo the stick
+        if (stickPos > LIFTPOWER_UP) {
+            currPower = LIFTPOWER_UP;
+        }
+
+        //clamp the power of the stick
+        if (stickPos < LIFTPOWER_DOWN) {
+            currPower = LIFTPOWER_DOWN;
+        }
+
+        LIFTPOWER_current = currPower;
+    }
+
+    public boolean getcmdComplete() {
+        // used by auton to detect if the move is complete.
+        return (cmdComplete);
     }
 
 
-    public void cmdDo_Move_TelleOp(double MotorPower) {
-        //Called in TelleOP to move  the lift
-        //Get the current Position
-        int curr_pos = Lift_Motor.getCurrentPosition();
-        double motor_power = MotorPower;
+    // somebody pressed a button or ran Auton to send command to move to a given location.
+    public void cmd_MoveToTarget(int LIFTPOS_Target_Ticks) {
 
-        //Do not move beyond MAX position
-        if (curr_pos >= LIFTPOS_MAX) {
-            motor_power = 0;
+        //int curr_pos = Motor_Lift.getCurrentPosition();
+        int LIFTPOS_new = LIFTPOS_Target_Ticks;
+
+        //Do not move below BOTTOM
+        if (LIFTPOS_new < LIFTPOS_BOTTOM) {
+            LIFTPOS_new = LIFTPOS_BOTTOM;
         }
 
-        //Do not move below bottom position
-        if (curr_pos <= LIFTPOS_BOTTOM) {
-            motor_power = 0;
+        //Do not move above MAX
+        if (LIFTPOS_new > LIFTPOS_MAX) {
+            LIFTPOS_new = LIFTPOS_MAX;
+        }
+        //we are higher than we want to be and
+        //not already at the bottom.
+        if ((LIFTPOS_current >= LIFTPOS_new) &&
+            (LIFTPOS_current > LIFTPOS_BOTTOM)) {
+            //We need to go down to target
+            LIFTPOWER_current = LIFTPOWER_DOWN;
+            cmdComplete = false;
+            underStickControl = false;
+            LIFTPOS_CmdPos = LIFTPOS_new;
         }
 
-        Lift_Motor.setPower(motor_power);
-
+        //We are lower than we want to be and not already at the top
+        if ((LIFTPOS_current <= LIFTPOS_new) &&
+            (LIFTPOS_current < LIFTPOS_MAX)) {
+            //We need to go down to target
+            LIFTPOWER_current = LIFTPOWER_UP;
+            cmdComplete = false;
+            underStickControl = false;
+            LIFTPOS_CmdPos = LIFTPOS_new;
+        }
     }
 
+
+    public int getLIFTPOS_Ticks(){
+        return LIFTPOS_current;
+    }
 
     /*
      * Code to run ONCE after the driver hits STOP
      */
     @Override
     public void stop() {
-        Lift_Motor.setPower(0);
+        SetMotorPower(0);
     }
-
 }
