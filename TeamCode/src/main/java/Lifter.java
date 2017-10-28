@@ -5,6 +5,7 @@
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
@@ -39,23 +40,24 @@ public class Lifter extends OpMode {
 
 
     //Encoder positions for the lift
+    public static final int LIFTTICS_REV = 2240;
     public static final int LIFTPOS_BOTTOM = 0;
-    public static final int LIFTPOS_CARRY = 1700;
-    public static final int LIFTPOS_STACK1 = 22000;
-    public static final int LIFTPOS_STACK2 = 30000;
-    public static final int LIFTPOS_MAX = 35000;
-    public static final int LIFTPOS_TOL = 200;
+    public static final int LIFTPOS_CARRY = 3500;
+    public static final int LIFTPOS_STACK1 = 13000;
+    public static final int LIFTPOS_STACK2 = 21000;
+    public static final int LIFTPOS_MAX = 21000;
+    public static final int LIFTPOS_TOL = 100;
 
     int LIFTPOS_current = LIFTPOS_BOTTOM;   // This is the current tick counts of the lifter
     int LIFTPOS_CmdPos = LIFTPOS_BOTTOM;    // This is the commanded tick counts of the lifter
 
     //set the lift powers... We will need different speeds for up and down.
-    public static final double LIFTPOWER_UP = .75;
-    public static final double LIFTPOWER_DOWN = -.5;
+    public static final double LIFTPOWER_UP = 1;
+    public static final double LIFTPOWER_DOWN = -.75;
     double LIFTPOWER_current = 0;
 
 
-    double liftStickDeadBand = .1;
+    double liftStickDeadBand = .2;
 
     boolean cmdComplete = false;
     boolean underStickControl = false;
@@ -78,7 +80,8 @@ public class Lifter extends OpMode {
         Motor_Lift = hardwareMap.dcMotor.get("MOTOR_LIFT");
         Motor_Lift.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         Motor_Lift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        Motor_Lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        Motor_Lift.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        Motor_Lift.setDirection(DcMotor.Direction.REVERSE);
     }
 
     /*
@@ -115,7 +118,7 @@ public class Lifter extends OpMode {
     }
 
 
-    private void SetMotorPower (double newMotorPower) {
+    private void SetMotorPower(double newMotorPower) {
         //Saftey checks for the lift to prevent too low or too high
 
         LIFTPOS_current = Motor_Lift.getCurrentPosition();
@@ -133,7 +136,7 @@ public class Lifter extends OpMode {
         }
 
         // make sure that we are not going below the bottom
-        if ((LIFTPOS_BOTTOM + LIFTPOS_TOL > LIFTPOS_current) && (LIFTPOWER_current < 0)) {
+       /* if ((LIFTPOS_BOTTOM + LIFTPOS_TOL > LIFTPOS_current) && (LIFTPOWER_current < 0)) {
             newPower = 0;
         }
 
@@ -141,12 +144,13 @@ public class Lifter extends OpMode {
         if ((LIFTPOS_MAX - LIFTPOS_TOL < LIFTPOS_current) && (LIFTPOWER_current > 0)) {
             newPower = 0;
         }
-
+*/
         //only set the power to the hardware when it is being changed.
-        if (newPower != LIFTPOWER_current) {
-            LIFTPOWER_current = newPower;
-            Motor_Lift.setPower(newPower);
-        }
+        // if (newPower != LIFTPOWER_current) {
+        LIFTPOWER_current = newPower;
+        Motor_Lift.setPower(newPower);
+        telemetry.addLine(" LIFTPOWER_current= " + LIFTPOWER_current + " curr " + LIFTPOS_current);
+        // }
     }
 
     private void testInPosition() {
@@ -165,26 +169,29 @@ public class Lifter extends OpMode {
     public void cmdStickControl(double stickPos) {
 
         if (Math.abs(stickPos) < liftStickDeadBand) {
+            if (underStickControl) {
+                LIFTPOWER_current = 0;
+            }
             // we are inside the deadband do nothing.
             underStickControl = false;
             return;
+        } else {
+            underStickControl = true;
+            cmdComplete = false;
+            double currPower = -1 * stickPos;
+
+            //clamp the power fo the stick
+            if (stickPos > LIFTPOWER_UP) {
+                currPower = LIFTPOWER_UP;
+            }
+
+            //clamp the power of the stick
+            if (stickPos < LIFTPOWER_DOWN) {
+                currPower = LIFTPOWER_DOWN;
+            }
+
+            LIFTPOWER_current = currPower;
         }
-
-        underStickControl = true;
-        cmdComplete = false;
-        double currPower = stickPos;
-
-        //clamp the power fo the stick
-        if (stickPos > LIFTPOWER_UP) {
-            currPower = LIFTPOWER_UP;
-        }
-
-        //clamp the power of the stick
-        if (stickPos < LIFTPOWER_DOWN) {
-            currPower = LIFTPOWER_DOWN;
-        }
-
-        LIFTPOWER_current = currPower;
     }
 
     public boolean getcmdComplete() {
@@ -211,7 +218,7 @@ public class Lifter extends OpMode {
         //we are higher than we want to be and
         //not already at the bottom.
         if ((LIFTPOS_current >= LIFTPOS_new) &&
-            (LIFTPOS_current > LIFTPOS_BOTTOM)) {
+                (LIFTPOS_current > LIFTPOS_BOTTOM)) {
             //We need to go down to target
             LIFTPOWER_current = LIFTPOWER_DOWN;
             cmdComplete = false;
@@ -221,7 +228,7 @@ public class Lifter extends OpMode {
 
         //We are lower than we want to be and not already at the top
         if ((LIFTPOS_current <= LIFTPOS_new) &&
-            (LIFTPOS_current < LIFTPOS_MAX)) {
+                (LIFTPOS_current < LIFTPOS_MAX)) {
             //We need to go down to target
             LIFTPOWER_current = LIFTPOWER_UP;
             cmdComplete = false;
@@ -231,7 +238,7 @@ public class Lifter extends OpMode {
     }
 
 
-    public int getLIFTPOS_Ticks(){
+    public int getLIFTPOS_Ticks() {
         return LIFTPOS_current;
     }
 

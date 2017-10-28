@@ -58,7 +58,6 @@ public class TeleOp_8492 extends OpMode {
     }
 
 
-
     /*
          * Code to run ONCE when the driver hits PLAY
          */
@@ -76,7 +75,7 @@ public class TeleOp_8492 extends OpMode {
     public void loop() {
         robotChassis.loop();
 
-        //telemetry.addData("Status", shootTrigger.getPosition());
+        /*telemetry.addData("Status", shootTrigger.getPosition());
         telemetry.addData("Status", "Running: " + runtime.toString());
         robotChassis.doTeleOp(joystickMath(gamepad1.left_stick_y),
                 joystickMath(gamepad1.right_stick_y));
@@ -87,6 +86,7 @@ public class TeleOp_8492 extends OpMode {
         if (gamepad2.b && !gamepad2.a) {
             robotChassis.stinger.cmdDoRetract();
         }
+        */
         if (gamepad2.right_bumper && !gamepad2.left_bumper) {
             robotChassis.gripper.cmd_Close();
 
@@ -105,7 +105,8 @@ public class TeleOp_8492 extends OpMode {
         // 1) only 1 button is pressed.
         // 2) The button must released to get another command
         //
-        if (gamepad2.a && ! gamepad2_a_pressed && ! gamepad2.b && ! gamepad2.x && ! gamepad2.y){
+        // if (gamepad2.a && ! gamepad2_a_pressed && ! gamepad2.b && ! gamepad2.x && ! gamepad2.y){
+        if (gamepad2.a) {
             robotChassis.lifter.cmd_MoveToTarget(robotChassis.lifter.LIFTPOS_BOTTOM);
             gamepad2_a_pressed = true;
             gamepad2_b_pressed = false;
@@ -113,22 +114,27 @@ public class TeleOp_8492 extends OpMode {
             gamepad2_y_pressed = false;
         }
 
-        if (gamepad2.b && ! gamepad2_b_pressed && ! gamepad2.a && ! gamepad2.x && ! gamepad2.y){
+        // if (gamepad2.b && ! gamepad2_b_pressed && ! gamepad2.a && ! gamepad2.x && ! gamepad2.y){
+        if (gamepad2.b) {
             robotChassis.lifter.cmd_MoveToTarget(robotChassis.lifter.LIFTPOS_CARRY);
             gamepad2_a_pressed = false;
             gamepad2_b_pressed = true;
             gamepad2_x_pressed = false;
-            gamepad2_y_pressed = false;;
+            gamepad2_y_pressed = false;
+            ;
         }
 
-        if (gamepad2.x && ! gamepad2_x_pressed && ! gamepad2.a && ! gamepad2.b && ! gamepad2.y){
+        // if (gamepad2.x && ! gamepad2_x_pressed && ! gamepad2.a && ! gamepad2.b && ! gamepad2.y){
+        if (gamepad2.y) {
             robotChassis.lifter.cmd_MoveToTarget(robotChassis.lifter.LIFTPOS_STACK1);
             gamepad2_a_pressed = false;
             gamepad2_b_pressed = false;
             gamepad2_x_pressed = true;
-            gamepad2_y_pressed = false;;
+            gamepad2_y_pressed = false;
+            ;
         }
-        if (gamepad2.y && ! gamepad2_y_pressed && ! gamepad2.a && ! gamepad2.b && ! gamepad2.x){
+        // if (gamepad2.y && ! gamepad2_y_pressed && ! gamepad2.a && ! gamepad2.b && ! gamepad2.x){
+        if (gamepad2.x) {
             robotChassis.lifter.cmd_MoveToTarget(robotChassis.lifter.LIFTPOS_STACK2);
             gamepad2_a_pressed = false;
             gamepad2_b_pressed = false;
@@ -137,9 +143,7 @@ public class TeleOp_8492 extends OpMode {
         }
 
 
-
-
-        robotChassis.lifter.cmdStickControl(joystickMath(gamepad2.right_stick_x));
+        robotChassis.lifter.cmdStickControl(joystickMath(gamepad2.right_stick_y));
 
 
     }

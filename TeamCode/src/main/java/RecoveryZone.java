@@ -24,7 +24,7 @@ public class RecoveryZone extends OpMode {
     public static int stage_30ReadPlatformColor = 30;
     public static int stage_40ReadColorOfjewell = 40;
     public static int stage_50Knockjewelloff = 50;
-    public static int stage_60LiftStinger = 60;
+    public static int stage_60Return2Start = 60;
     public static int stage_70Turn1 = 70;
     public static int stage_80MoveFoward = 80;
     public static int stage_90Turn2 = 90;
@@ -49,7 +49,7 @@ public class RecoveryZone extends OpMode {
 
         robotChassis.hardwareMap = hardwareMap;
         robotChassis.telemetry = telemetry;
-        robotChassis.init();
+        //robotChassis.init();
         telemetry.addData("Status", "Initialized");
 
 
@@ -79,6 +79,7 @@ public class RecoveryZone extends OpMode {
      */
     @Override
     public void start() {
+        robotChassis.init();
         robotChassis.start();
         runtime.reset();
         //shootTrigger.setPosition(Settings.reset);
@@ -95,27 +96,65 @@ public class RecoveryZone extends OpMode {
 
         if (CurrentStage == stage_0PreStart) {
             //Start Stage 1
-            CurrentStage = stage_80MoveFoward;
-            //start the next phase
-            robotChassis.cmdDrive(.5, 0, 12);
-        }
 
+            robotChassis.gripper.cmd_Close();
+            robotChassis.stinger.cmdDoExtend();
+            if (robotChassis.gripper.Is_Closed() &&
+                    robotChassis.stinger.IsExtended()) {
+                CurrentStage = stage_40ReadColorOfjewell;
 
-        if (CurrentStage == stage_80MoveFoward) {
-            // Stay in this stage until complete move
-            if (robotChassis.getcmdComplete()) {
-                //Move on to the next stage
-                CurrentStage = stage_120MoveBack1;
             }
         }
 
-        if (CurrentStage == stage_120MoveBack1){
-            robotChassis.cmdDrive(-.5,0,12);
+
+        if (CurrentStage == stage_40ReadColorOfjewell) {
+            // Stay in this stage until complete move
+            if (robotChassis.IsBlue()) {
+                if (robotChassis.stinger.IsBlue()) {
+                    robotChassis.cmdTurn(.5, -.5, 45);
+                    CurrentStage = stage_50Knockjewelloff;
+                } else if (robotChassis.stinger.IsRed()) {
+                    robotChassis.cmdTurn(-.5, .5, -45);
+                    CurrentStage = stage_50Knockjewelloff;
+                } else {
+                    //need to decide skip
+                }
+            } else if (robotChassis.IsRed()) {
+                if (robotChassis.stinger.IsRed()) {
+                    robotChassis.cmdTurn(.5, -.5, 45);
+                    CurrentStage = stage_50Knockjewelloff;
+                } else if (robotChassis.stinger.IsBlue()) {
+                    robotChassis.cmdTurn(-.5, .5, -45);
+                    CurrentStage = stage_50Knockjewelloff;
+                } else {
+                    //need to decide skip
+                }
+            }
+        }
+        if (CurrentStage == stage_50Knockjewelloff) {
+            if (robotChassis.getcmdComplete()) {
+                CurrentStage = stage_60Return2Start;
+            }
+        }
+        if (CurrentStage == stage_60Return2Start) {
+            if (robotChassis.getGyroHeading() < 0) {
+                robotChassis.cmdTurn(.5, -.5, 0);
+            }
+
+            if (robotChassis.getGyroHeading() > 0) {
+                robotChassis.cmdTurn(.5, -.5, 0);
+            }
+            CurrentStage = stage_70Turn1;
+        }
+
+
+        if (CurrentStage == stage_120MoveBack1) {
+            robotChassis.cmdDrive(-.5, 0, 12);
             CurrentStage = stage_150Done;
         }
-    if (CurrentStage == stage_150Done){
-        robotChassis.stop();
-    }
+        if (CurrentStage == stage_150Done) {
+            robotChassis.stop();
+        }
     }
 
     /*

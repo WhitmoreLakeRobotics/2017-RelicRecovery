@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 //package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.GyroSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -82,8 +83,8 @@ public class Chassis extends OpMode {
 
     public Stinger stinger = new Stinger();
     public Gripper gripper = new Gripper();
-    public Lifter  lifter = new Lifter();
-
+    public Lifter lifter = new Lifter();
+    private ColorSensor sensorColorStone;    // Hardware Device Object
     // The IMU sensor object
     BNO055IMU imu;
     // State used for updating telemetry
@@ -106,8 +107,9 @@ public class Chassis extends OpMode {
         composeTelemetry();
         telemetry.log().add("Waiting for start...");
 
-        LDM1 = hardwareMap.dcMotor.get("LDM1");
+
         RDM1 = hardwareMap.dcMotor.get("RDM1");
+        LDM1 = hardwareMap.dcMotor.get("LDM1");
         LDM2 = hardwareMap.dcMotor.get("LDM2");
         RDM2 = hardwareMap.dcMotor.get("RDM2");
 
@@ -136,7 +138,7 @@ public class Chassis extends OpMode {
         RDM1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         LDM2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         RDM2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        // DriveMotorEncoderReset();
+        //DriveMotorEncoderReset();
 
         LDM1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         RDM1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -166,6 +168,13 @@ public class Chassis extends OpMode {
         imu = hardwareMap.get(BNO055IMU.class, "imu");
         imu.initialize(parameters);
 
+        boolean bLedOn = true;
+
+        // get a reference to our ColorSensor object.
+        sensorColorStone = hardwareMap.get(ColorSensor.class, "sensor_color_stone");
+
+        // Set the LED in the beginning
+        sensorColorStone.enableLed(bLedOn);
 
         stinger.hardwareMap = hardwareMap;
         stinger.telemetry = telemetry;
@@ -215,7 +224,7 @@ public class Chassis extends OpMode {
 
 
         telemetry.update();
-        telemetry.addLine("chassisMode" + ChassisMode_Current);
+        // telemetry.addLine("chassisMode" + ChassisMode_Current);
 
     }
 
@@ -311,7 +320,7 @@ public class Chassis extends OpMode {
         /*
         called by other opmodes to start a drive straight by gyro command
          */
-         DriveMotorEncoderReset();
+        DriveMotorEncoderReset();
         TargetHeadingDeg = headingDeg;
         TargetMotorPowerLeft = speed;
         TargetMotorPowerRight = speed;
@@ -376,21 +385,21 @@ public class Chassis extends OpMode {
         double RDM_new_Power = Math.abs(RDMpower);
 
         //If we are at the Stack1 pos or higher clamp the powers
-        if (lifter.getLIFTPOS_Ticks() > Lifter.LIFTPOS_STACK1){
-            if (LDM_new_Power > ChassisPower_STACK1_MAX){
+        if (lifter.getLIFTPOS_Ticks() > Lifter.LIFTPOS_STACK1) {
+            if (LDM_new_Power > ChassisPower_STACK1_MAX) {
                 LDM_new_Power = ChassisPower_STACK1_MAX;
             }
-            if (RDM_new_Power > ChassisPower_STACK1_MAX){
+            if (RDM_new_Power > ChassisPower_STACK1_MAX) {
                 RDM_new_Power = ChassisPower_STACK1_MAX;
             }
         }
 
         //If we are at the Stack2 pos or higher clamp the powers
-        if (lifter.getLIFTPOS_Ticks() > Lifter.LIFTPOS_STACK2){
-            if (LDM_new_Power > ChassisPower_STACK2_MAX){
+        if (lifter.getLIFTPOS_Ticks() > Lifter.LIFTPOS_STACK2) {
+            if (LDM_new_Power > ChassisPower_STACK2_MAX) {
                 LDM_new_Power = ChassisPower_STACK2_MAX;
             }
-            if (RDM_new_Power > ChassisPower_STACK2_MAX){
+            if (RDM_new_Power > ChassisPower_STACK2_MAX) {
                 RDM_new_Power = ChassisPower_STACK2_MAX;
             }
         }
@@ -429,8 +438,6 @@ public class Chassis extends OpMode {
         lifter.stop();
 
     }
-
-
 
 
     public int normalizeGyro(int heading) {
@@ -559,7 +566,22 @@ public class Chassis extends OpMode {
         return String.format(Locale.getDefault(), "%.1f", AngleUnit.DEGREES.normalize(degrees));
     }
 
+    public boolean IsBlue() {
+        int blueValue = sensorColorStone.blue();
+        int redValue = sensorColorStone.red() + 10;
 
+
+        return (blueValue > redValue);
+    }
+
+    //returns true if stinger is extended
+    public boolean IsRed() {
+        int blueValue = sensorColorStone.blue() + 10;
+        int redValue = sensorColorStone.red();
+
+
+        return (blueValue < redValue);
+    }
 }
 
 
