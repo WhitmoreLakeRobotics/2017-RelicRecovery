@@ -43,8 +43,8 @@ public class Gripper extends OpMode {
     private ElapsedTime open_timer = new ElapsedTime();
 
     //Time delays for opening and closing the gripper... These will need to be tuned
-    private final int GRIPPER_OPEN_TIME_MS = 5000;
-    private final int GRIPPER_CLOSE_TIME_MS = 7500;
+    private final int GRIPPER_OPEN_TIME_MS = 500;
+    private final int GRIPPER_CLOSE_TIME_MS = 750;
 
 
     // Gripper states
@@ -59,8 +59,10 @@ public class Gripper extends OpMode {
     // Servo Position variables
     // Servo positions are 0 to 1  and represent positons 0 to 180 degrees
     // this means that .5 is about 90 degrees
-    private final double SERVO_POS_LEFT_OPEN = 0;
-    private final double SERVO_POS_LEFT_CLOSED = -1;
+
+    //Servo positions are given as a number from 0 (fully counter-clockwise) to 1 (fully clockwise)
+    private final double SERVO_POS_LEFT_OPEN = .5;
+    private final double SERVO_POS_LEFT_CLOSED = 0;
     private final double SERVO_POS_RIGHT_OPEN = 0;
     private final double SERVO_POS_RIGHT_CLOSED = 1;
 

@@ -5,18 +5,12 @@
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.ColorSensor;
-import com.qualcomm.robotcore.hardware.GyroSensor;
 
 
-@Autonomous(name = "RecoveryZone", group = "")  // @Autonomous(...) is the other common choice
+@Autonomous(name = "MrJ", group = "")  // @Autonomous(...) is the other common choice
 
-public class RecoveryZone extends OpMode {
+public class MrJ extends OpMode {
 
     public static int stage_0PreStart = 0;
     public static int stage_10GripBlock = 10;
@@ -37,6 +31,18 @@ public class RecoveryZone extends OpMode {
 
 
     Chassis robotChassis = new Chassis();
+
+    private double AUTO_MotorPower = .5;
+    private int AUTO_NextHeading = 0;
+
+    private int AUTO_RED_Factor = 1;
+    private int AUTO_BLUE_Factor = -1;
+    private int AUTO_REDBLUE_Factor_Stone = AUTO_RED_Factor;
+    private int AUTO_REDBLUE_Factor_Jewel = AUTO_RED_Factor;
+
+    private int AUTO_Jewel_Swing = 45;
+
+
 
     /* Declare OpMode members. */
     private ElapsedTime runtime = new ElapsedTime();
@@ -110,27 +116,30 @@ public class RecoveryZone extends OpMode {
         if (CurrentStage == stage_40ReadColorOfjewell) {
             // Stay in this stage until complete move
             if (robotChassis.IsBlue()) {
+                AUTO_REDBLUE_Factor_Stone = AUTO_BLUE_Factor;
                 if (robotChassis.stinger.IsBlue()) {
-                    robotChassis.cmdTurn(.5, -.5, 45);
+                    AUTO_REDBLUE_Factor_Jewel = AUTO_BLUE_Factor;
+                    robotChassis.cmdTurn(AUTO_MotorPower, - AUTO_MotorPower, AUTO_Jewel_Swing);
                     CurrentStage = stage_50Knockjewelloff;
                 } else if (robotChassis.stinger.IsRed()) {
-                    robotChassis.cmdTurn(-.5, .5, -45);
+                    robotChassis.cmdTurn(-AUTO_MotorPower, AUTO_MotorPower, -AUTO_Jewel_Swing);
                     CurrentStage = stage_50Knockjewelloff;
                 } else {
                     //need to decide skip
                 }
             } else if (robotChassis.IsRed()) {
                 if (robotChassis.stinger.IsRed()) {
-                    robotChassis.cmdTurn(.5, -.5, 45);
+                    robotChassis.cmdTurn(AUTO_MotorPower, -AUTO_MotorPower, AUTO_Jewel_Swing);
                     CurrentStage = stage_50Knockjewelloff;
                 } else if (robotChassis.stinger.IsBlue()) {
-                    robotChassis.cmdTurn(-.5, .5, -45);
+                    robotChassis.cmdTurn(-AUTO_MotorPower, AUTO_MotorPower, -AUTO_Jewel_Swing);
                     CurrentStage = stage_50Knockjewelloff;
                 } else {
                     //need to decide skip
                 }
             }
         }
+
         if (CurrentStage == stage_50Knockjewelloff) {
             if (robotChassis.getcmdComplete()) {
                 CurrentStage = stage_60Return2Start;

@@ -144,7 +144,9 @@ public class TeleOp_8492 extends OpMode {
 
 
         robotChassis.lifter.cmdStickControl(joystickMath(gamepad2.right_stick_y));
+        //robotChassis.extender.cmdStickControl(joystickMath(gamepad2.left_stick_y));
 
+        robotChassis.doTeleOp(joystickMath(gamepad1.left_stick_y), joystickMath(gamepad1.right_stick_y));
 
     }
 

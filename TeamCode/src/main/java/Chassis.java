@@ -140,10 +140,10 @@ public class Chassis extends OpMode {
         RDM2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         //DriveMotorEncoderReset();
 
-        LDM1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        RDM1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        LDM2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        RDM2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        LDM1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        RDM1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        LDM2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        RDM2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         LDM1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         LDM2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
