@@ -40,12 +40,12 @@ public class Lifter extends OpMode {
 
 
     //Encoder positions for the lift
-    public static final int LIFTTICS_REV = 2240;
+    public static final int LIFTTICS_REV = 1120;
     public static final int LIFTPOS_BOTTOM = 0;
-    public static final int LIFTPOS_CARRY = 3500;
-    public static final int LIFTPOS_STACK1 = 13000;
-    public static final int LIFTPOS_STACK2 = 21000;
-    public static final int LIFTPOS_MAX = 21000;
+    public static final int LIFTPOS_CARRY = 3500 / 2;
+    public static final int LIFTPOS_STACK1 = 13000 / 2;
+    public static final int LIFTPOS_STACK2 = 21000 / 2;
+    public static final int LIFTPOS_MAX = 21000 / 2;
     public static final int LIFTPOS_TOL = 100;
 
     int LIFTPOS_current = LIFTPOS_BOTTOM;   // This is the current tick counts of the lifter
@@ -81,7 +81,7 @@ public class Lifter extends OpMode {
         Motor_Lift.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         Motor_Lift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         Motor_Lift.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        Motor_Lift.setDirection(DcMotor.Direction.REVERSE);
+        Motor_Lift.setDirection(DcMotor.Direction.FORWARD);
     }
 
     /*
@@ -121,7 +121,7 @@ public class Lifter extends OpMode {
     private void SetMotorPower(double newMotorPower) {
         //Saftey checks for the lift to prevent too low or too high
 
-        LIFTPOS_current = Motor_Lift.getCurrentPosition();
+        LIFTPOS_current = Math.abs(Motor_Lift.getCurrentPosition());
 
         double newPower = newMotorPower;
 
@@ -178,7 +178,7 @@ public class Lifter extends OpMode {
         } else {
             underStickControl = true;
             cmdComplete = false;
-            double currPower = -1 * stickPos;
+            double currPower = stickPos;
 
             //clamp the power fo the stick
             if (stickPos > LIFTPOWER_UP) {

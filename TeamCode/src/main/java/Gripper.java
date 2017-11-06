@@ -49,7 +49,7 @@ public class Gripper extends OpMode {
 
     // Gripper states
     public static final int GRIPPER_MODE_UNKNOWN = 0;
-    public static final int GRIPPER_MODE_CLOSING =1;
+    public static final int GRIPPER_MODE_CLOSING = 1;
     public static final int GRIPPER_MODE_CLOSED = 2;
     public static final int GRIPPER_MODE_OPENING = 3;
     public static final int GRIPPER_MODE_OPEN = 4;
@@ -61,7 +61,7 @@ public class Gripper extends OpMode {
     // this means that .5 is about 90 degrees
 
     //Servo positions are given as a number from 0 (fully counter-clockwise) to 1 (fully clockwise)
-    private final double SERVO_POS_LEFT_OPEN = .5;
+    private final double SERVO_POS_LEFT_OPEN = 1;
     private final double SERVO_POS_LEFT_CLOSED = 0;
     private final double SERVO_POS_RIGHT_OPEN = 0;
     private final double SERVO_POS_RIGHT_CLOSED = 1;
@@ -139,7 +139,7 @@ public class Gripper extends OpMode {
     }
 
 
-    private void Do_closing(){
+    private void Do_closing() {
         // check timer to see if we are closed
         // if so set Gripper_current = Gripper_closed
         // warning calling to get server current position is only going to return last set position
@@ -151,7 +151,7 @@ public class Gripper extends OpMode {
 
     }
 
-    private void Do_opening(){
+    private void Do_opening() {
         //check timer to see if we are open
         // if so set Gripper_current - Gripper_open
         if (open_timer.time() >= GRIPPER_OPEN_TIME_MS) {
@@ -162,7 +162,7 @@ public class Gripper extends OpMode {
     }
 
 
-    public void cmd_Close(){
+    public void cmd_Close() {
         //set gripper position to closed
         //set gripper mode to closing
         //reset timmer
@@ -177,7 +177,7 @@ public class Gripper extends OpMode {
     }
 
 
-    public void cmd_Open (){
+    public void cmd_Open() {
         //set gripper position to open
         //set gripper mode to opening
         //reset open timer
@@ -191,15 +191,15 @@ public class Gripper extends OpMode {
     }
 
     // public method to see if gripper is closed
-    public boolean Is_Closed(){
+    public boolean Is_Closed() {
         //Warning calls to hardware getCurrentPosition return the last commanded position
         return (Gripper_current == GRIPPER_MODE_CLOSED);
     }
 
     // public method to see if gripper is open
-    public boolean Is_Open(){
+    public boolean Is_Open() {
         //Warning calls to hardware getCurrentPosition return the last commanded position
         return (Gripper_current == GRIPPER_MODE_OPEN);
     }
 
- }
+}

@@ -6,9 +6,9 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 
-@Autonomous(name = "MrJ", group = "")  // @Autonomous(...) is the other common choice
+@Autonomous(name = "MrJ2", group = "")  // @Autonomous(...) is the other common choice
 
-public class MrJ extends OpMode {
+public class MrJ2 extends OpMode {
 
     public static int stage_0PreStart = 0;
     public static int stage_10GripBlock = 10;
@@ -81,20 +81,18 @@ public class MrJ extends OpMode {
             //Start Stage 1
             robotChassis.gripper.cmd_Close();
             robotChassis.stinger.cmdDoExtend();
+            CurrentStage = stage_30BackUp;
+        }
+
+        if (CurrentStage == stage_30BackUp) {
             if (runtime.seconds() > 2) {
+                robotChassis.cmdDrive(-AUTO_MotorPower_Fast, 0, 2);
                 CurrentStage = stage_40ReadColorOfjewell;
             }
         }
 
-        /*if (CurrentStage == stage_30BackUp){
-            if (runtime.seconds() > 2){
-                robotChassis.cmdDrive(-AUTO_MotorPower_Fast,0,2);
-                CurrentStage = stage_40ReadColorOfjewell;
-            }
-        }*/
-
         if (CurrentStage == stage_40ReadColorOfjewell) {
-            if (runtime.seconds() > 2) {
+            if (robotChassis.getcmdComplete()) {
                 // Stay in this stage until complete move
                 robotChassis.cmdTurn(AUTO_MotorPower, -AUTO_MotorPower, 45);
                 CurrentStage = stage_50ReturnToZero;
@@ -110,7 +108,7 @@ public class MrJ extends OpMode {
 
         if (CurrentStage == stage_60Return2Start) {
             if (robotChassis.getcmdComplete()) {
-                robotChassis.cmdDrive(AUTO_MotorPower_Fast, 0, 28);
+                robotChassis.cmdDrive(AUTO_MotorPower_Fast, 0, 30);
                 CurrentStage = stage_150Done;
             }
         }

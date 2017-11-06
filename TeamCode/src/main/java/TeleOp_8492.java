@@ -65,7 +65,7 @@ public class TeleOp_8492 extends OpMode {
     public void start() {
         robotChassis.start();
         runtime.reset();
-        //shootTrigger.setPosition(Settings.reset);
+        robotChassis.setMotorMode_RUN_WITHOUT_ENCODER();
     }
 
     /*
@@ -73,20 +73,17 @@ public class TeleOp_8492 extends OpMode {
      */
     @Override
     public void loop() {
+
         robotChassis.loop();
 
-        /*telemetry.addData("Status", shootTrigger.getPosition());
-        telemetry.addData("Status", "Running: " + runtime.toString());
-        robotChassis.doTeleOp(joystickMath(gamepad1.left_stick_y),
-                joystickMath(gamepad1.right_stick_y));
 
-        if (gamepad2.a && !gamepad2.b) {
+        if (gamepad1.a && !gamepad1.b) {
             robotChassis.stinger.cmdDoExtend();
         }
-        if (gamepad2.b && !gamepad2.a) {
+        if (gamepad1.b && !gamepad1.a) {
             robotChassis.stinger.cmdDoRetract();
         }
-        */
+
         if (gamepad2.right_bumper && !gamepad2.left_bumper) {
             robotChassis.gripper.cmd_Close();
 
@@ -144,16 +141,27 @@ public class TeleOp_8492 extends OpMode {
 
 
         robotChassis.lifter.cmdStickControl(joystickMath(gamepad2.right_stick_y));
-        //robotChassis.extender.cmdStickControl(joystickMath(gamepad2.left_stick_y));
+        robotChassis.extender.cmdStickControl(joystickMath(gamepad2.left_stick_y));
 
-        robotChassis.doTeleOp(joystickMath(gamepad1.left_stick_y), joystickMath(gamepad1.right_stick_y));
+        if (gamepad1.left_bumper) {
+            robotChassis.doTeleOp(joystickMath(gamepad1.left_stick_y * 0.8), joystickMath(gamepad1.right_stick_y * 0.8));
+
+        }
+        if (gamepad1.right_bumper) {
+            robotChassis.doTeleOp(joystickMath(gamepad1.left_stick_y) * 9, joystickMath(gamepad1.right_stick_y * .9));
+        } else if (gamepad1.left_bumper && gamepad1.right_bumper) {
+            robotChassis.doTeleOp(joystickMath(gamepad1.left_stick_y), joystickMath(gamepad1.right_stick_y));
+
+        } else {
+            robotChassis.doTeleOp(joystickMath(gamepad1.left_stick_y * 0.70), joystickMath(gamepad1.right_stick_y * 0.70));
+        }
+
 
     }
 
-
     /*
-     * Code to run ONCE after the driver hits STOP
-     */
+        * Code to run ONCE after the driver hits STOP
+        */
     @Override
     public void stop() {
         robotChassis.stop();

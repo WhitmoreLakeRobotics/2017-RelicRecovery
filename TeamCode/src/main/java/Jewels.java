@@ -1,6 +1,4 @@
-/*
 
-*/
 
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -8,15 +6,15 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 
-@Autonomous(name = "RecoveryZone", group = "")  // @Autonomous(...) is the other common choice
+@Autonomous(name = "Jewels", group = "")  // @Autonomous(...) is the other common choice
 
-public class RecoveryZone extends OpMode {
+public class Jewels extends OpMode {
 
     public static int stage_0PreStart = 0;
     public static int stage_10GripBlock = 10;
     public static int stage_20StingerExtend = 20;
     public static int stage_30ReadPlatformColor = 30;
-    public static int stage_40exce_jewels = 40;
+    public static int stage_40ReadColorOfjewell = 40;
     public static int stage_50Knockjewelloff = 50;
     public static int stage_60Return2Start = 60;
     public static int stage_70Turn1 = 70;
@@ -27,16 +25,10 @@ public class RecoveryZone extends OpMode {
     public static int stage_120MoveBack1 = 120;
     public static int stage_150Done = 150;
 
-    public static int color_mode_Red = 1;
-    public static int color_mode_Blue = 2;
-
-    int currentcolormode = 0;
     int CurrentStage = stage_0PreStart;
 
 
     Chassis robotChassis = new Chassis();
-    Jewels jewels = new Jewels();
-
 
     /* Declare OpMode members. */
     private ElapsedTime runtime = new ElapsedTime();
@@ -50,10 +42,8 @@ public class RecoveryZone extends OpMode {
         robotChassis.hardwareMap = hardwareMap;
         robotChassis.telemetry = telemetry;
         robotChassis.init();
-        //telemetry.addData("Status", "Initialized");
-        jewels.hardwareMap = hardwareMap;
-        jewels.telemetry = telemetry;
-        jewels.init();
+        telemetry.addData("Status", "Initialized");
+
 
         /* eg: Initialize the hardware variables. Note that the strings used here as parameters
          * to 'get' must correspond to the names assigned during the robot configuration
@@ -74,7 +64,6 @@ public class RecoveryZone extends OpMode {
     @Override
     public void init_loop() {
         robotChassis.init_loop();
-        jewels.init_loop();
     }
 
     /*
@@ -84,52 +73,64 @@ public class RecoveryZone extends OpMode {
     public void start() {
 
         robotChassis.start();
-        jewels.start();
         runtime.reset();
         //shootTrigger.setPosition(Settings.reset);
     }
 
     /*
-     * Code to run REPEATEDLY after the driver hits PLAY but before they hit STOP
+     * Code to run REPEATEDLY after the driver hits org.firstinspires.ftc.teamcodePLAY but before they hit STOP
      */
     @Override
     public void loop() {
-        //telemetry.addData("Status", shootTrigger.getPosition());
-        //telemetry.addData("Status", "Running: " + runtime.toString());
+        telemetry.addData("Stone", robotChassis.IsBlue() + " " + robotChassis.IsRed());
+        telemetry.addData("Jewel", robotChassis.stinger.IsBlue() + " " + robotChassis.stinger.IsRed());
         robotChassis.loop();
-
 
         if (CurrentStage == stage_0PreStart) {
             //Start Stage 1
-            if (robotChassis.IsBlue()) {
-                currentcolormode = color_mode_Blue;
-            }
 
+            robotChassis.gripper.cmd_Close();
+            robotChassis.stinger.cmdDoExtend();
+            if (robotChassis.gripper.Is_Closed() &&
+                    robotChassis.stinger.IsExtended()) {
+                CurrentStage = stage_40ReadColorOfjewell;
 
-            if (robotChassis.IsRed()) {
-                currentcolormode = color_mode_Red;
-            }
-            if (currentcolormode == 0) {
-                CurrentStage = stage_150Done;
-            } else {
-                robotChassis.gripper.cmd_Close();
-                robotChassis.stinger.cmdDoExtend();
-                if (robotChassis.gripper.Is_Closed() &&
-                        robotChassis.stinger.IsExtended()) {
-                    CurrentStage = stage_40exce_jewels;
-
-                }
             }
         }
-        //ok boi
-        if (CurrentStage == stage_40exce_jewels) {
-            jewels.loop();
+
+
+        if (CurrentStage == stage_40ReadColorOfjewell) {
+            // Stay in this stage until complete move
+            if (robotChassis.IsBlue()) {
+                if (robotChassis.stinger.IsBlue()) {
+                    robotChassis.cmdTurn(.5, -.5, 45);
+                    CurrentStage = stage_50Knockjewelloff;
+                } else if (robotChassis.stinger.IsRed()) {
+                    robotChassis.cmdTurn(-.5, .5, -45);
+                    CurrentStage = stage_50Knockjewelloff;
+                } else {
+                    //need to decide skip
+                }
+            } else if (robotChassis.IsRed()) {
+                if (robotChassis.stinger.IsRed()) {
+                    robotChassis.cmdTurn(.5, -.5, 45);
+                    CurrentStage = stage_50Knockjewelloff;
+                } else if (robotChassis.stinger.IsBlue()) {
+                    robotChassis.cmdTurn(-.5, .5, -45);
+                    CurrentStage = stage_50Knockjewelloff;
+                } else {
+                    //need to decide skip
+                    CurrentStage = stage_150Done;
+                }
+            }
         }
         if (CurrentStage == stage_50Knockjewelloff) {
             if (robotChassis.getcmdComplete()) {
                 CurrentStage = stage_60Return2Start;
             }
         }
+
+
         if (CurrentStage == stage_60Return2Start) {
             if (robotChassis.getGyroHeading() < 0) {
                 robotChassis.cmdTurn(.5, -.5, 0);
@@ -140,45 +141,7 @@ public class RecoveryZone extends OpMode {
             }
             CurrentStage = stage_70Turn1;
         }
-        if (CurrentStage == stage_70Turn1) {
-            if (currentcolormode == color_mode_Red) {
-                robotChassis.cmdTurn(.5, -.5, 90);
-                CurrentStage = stage_80MoveFoward;
-            }
-            if (currentcolormode == color_mode_Blue) {
-                robotChassis.cmdTurn(-.5, .5, -90);
-                CurrentStage = stage_80MoveFoward;
 
-            }
-        }
-        if (CurrentStage == stage_80MoveFoward) {
-            robotChassis.cmdDrive(.4, 0, 26.5);
-            CurrentStage = stage_90Turn2;
-
-
-        }
-        if (CurrentStage == stage_90Turn2) {
-            if (currentcolormode == color_mode_Red) {
-                robotChassis.cmdTurn(.5, -.5, 90);
-                CurrentStage = stage_100MoveFoward7;
-            }
-            if (currentcolormode == color_mode_Blue) {
-                robotChassis.cmdTurn(-.5, .5, -90);
-                CurrentStage = stage_100MoveFoward7;
-
-            }
-        }
-        if (CurrentStage == stage_100MoveFoward7) {
-            robotChassis.cmdDrive(.4, 0, 7.5);
-            CurrentStage = stage_110DropBlock;
-
-
-        }
-
-        if (CurrentStage == stage_110DropBlock) {
-            robotChassis.gripper.cmd_Open();
-            CurrentStage = stage_120MoveBack1;
-        }
 
         if (CurrentStage == stage_120MoveBack1) {
             robotChassis.cmdDrive(-.5, 0, 12);
@@ -186,7 +149,6 @@ public class RecoveryZone extends OpMode {
         }
         if (CurrentStage == stage_150Done) {
             robotChassis.stop();
-            jewels.stop();
         }
     }
 
@@ -196,8 +158,6 @@ public class RecoveryZone extends OpMode {
     @Override
     public void stop() {
         robotChassis.stop();
-        jewels.stop();
     }
-
 
 }

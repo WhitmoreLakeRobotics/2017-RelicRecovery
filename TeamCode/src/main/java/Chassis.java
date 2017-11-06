@@ -11,6 +11,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.GyroSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -44,8 +45,8 @@ public class Chassis extends OpMode {
     //Max speeds based on how high the lifter is.  Only in TeleOp
     public static final double ChassisPower_BOTTOM_MAX = 1;
     public static final double ChassisPower_CARRY_MAX = 1;
-    public static final double ChassisPower_STACK1_MAX = .75;
-    public static final double ChassisPower_STACK2_MAX = .5;
+    public static final double ChassisPower_STACK1_MAX = .6;
+    public static final double ChassisPower_STACK2_MAX = .4;
 
 
     //Gyro KP for driving straight
@@ -66,7 +67,7 @@ public class Chassis extends OpMode {
     //From http://www.revrobotics.com/content/docs/HDMotorEncoderGuide.pdf
     //Page 6
 
-    public static final int ticksPerMotorOutputRev = 2240;
+    public static final int ticksPerMotorOutputRev = 1120;
     public static final double wheelDistPreRev = 4 * 3.14159;
     public static final double gearRatio = 80 / 80;   // Motor Gear over Wheel Gear
     public static final double ticksPerInch = ticksPerMotorOutputRev / gearRatio / wheelDistPreRev;
@@ -84,6 +85,7 @@ public class Chassis extends OpMode {
     public Stinger stinger = new Stinger();
     public Gripper gripper = new Gripper();
     public Lifter lifter = new Lifter();
+    public Extender extender = new Extender();
     private ColorSensor sensorColorStone;    // Hardware Device Object
     // The IMU sensor object
     BNO055IMU imu;
@@ -129,10 +131,10 @@ public class Chassis extends OpMode {
             telemetry.log().add("RDM2 is null...");
         }
 
-        LDM1.setDirection(DcMotor.Direction.REVERSE);
-        LDM2.setDirection(DcMotor.Direction.REVERSE);
-        LDM1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-
+        LDM1.setDirection(DcMotor.Direction.FORWARD);
+        LDM2.setDirection(DcMotor.Direction.FORWARD);
+        RDM1.setDirection(DcMotor.Direction.REVERSE);
+        RDM2.setDirection(DcMotor.Direction.REVERSE);
 
         LDM1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         RDM1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -140,10 +142,10 @@ public class Chassis extends OpMode {
         RDM2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         //DriveMotorEncoderReset();
 
-        LDM1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        RDM1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        LDM2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        RDM2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        LDM1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        RDM1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        LDM2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        RDM2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         LDM1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         LDM2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
@@ -188,6 +190,10 @@ public class Chassis extends OpMode {
         lifter.telemetry = telemetry;
         lifter.init();
 
+        extender.hardwareMap = hardwareMap;
+        extender.telemetry = telemetry;
+        extender.init();
+
     }
 
     /*
@@ -198,6 +204,19 @@ public class Chassis extends OpMode {
         stinger.init_loop();
         gripper.init_loop();
         lifter.init_loop();
+        extender.init_loop();
+    }
+
+    private void setMotorMode(DcMotor.RunMode newMode) {
+
+        LDM1.setMode(newMode);
+        RDM1.setMode(newMode);
+        LDM2.setMode(newMode);
+        RDM2.setMode(newMode);
+    }
+
+    public void setMotorMode_RUN_WITHOUT_ENCODER() {
+        setMotorMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
 
 
@@ -209,6 +228,7 @@ public class Chassis extends OpMode {
         stinger.loop();
         gripper.loop();
         lifter.loop();
+        extender.loop();
 
         if (ChassisMode_Stop == ChassisMode_Current) {
             Dostop();
@@ -295,24 +315,29 @@ public class Chassis extends OpMode {
         *   executes the logic of a single scan of turning the robot to a new heading
          */
 
-        int deltaHeading = 0; //Math.abs(getGyroHeading() - headingTarget); //NEED TO DETEMINE ACTUAL TARGET
-        if ((deltaHeading <= chassis_GyroHeadingTol) ||
-                runtime.milliseconds() > chassis_TurnTimeout_mS) {
+        int currHeading = gyroNormalize(getGyroHeading());
+        if (gyroInTol(currHeading, TargetHeadingDeg, chassis_GyroHeadingTol)) {
             //We are there stop
+            LDM1.setPower(0);
+            LDM2.setPower(0);
+            RDM1.setPower(0);
+            RDM2.setPower(0);
+            cmdComplete = true;
             ChassisMode_Current = ChassisMode_Stop;
         }
     }
 
     public void DriveMotorEncoderReset() {
+
         LDM1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         RDM1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         LDM2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         RDM2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
-        LDM1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        RDM1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        LDM2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        RDM2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        //LDM1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        //RDM1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        //LDM2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        //RDM2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
     }
 
@@ -320,28 +345,37 @@ public class Chassis extends OpMode {
         /*
         called by other opmodes to start a drive straight by gyro command
          */
+
         DriveMotorEncoderReset();
         TargetHeadingDeg = headingDeg;
         TargetMotorPowerLeft = speed;
         TargetMotorPowerRight = speed;
         TargetDistanceInches = inches;
-        DoDrive();
         runtime.reset();
         cmdComplete = false;
-
+        DoDrive();
     }
 
     public boolean getcmdComplete() {
+
         return (cmdComplete);
     }
 
-    public void cmdTurn(double LSpeed, double RSpeed, int NewHeadingDeg) {
-        runtime.reset();
+    public void cmdTurn(double LSpeed, double RSpeed, int headingDeg) {
+
+        ChassisMode_Current = ChassisMode_Turn;
+        TargetHeadingDeg = headingDeg;
+        LDM1.setPower(LSpeed);
+        LDM2.setPower(LSpeed);
+        RDM1.setPower(RSpeed);
+        RDM2.setPower(RSpeed);
         cmdComplete = false;
+        runtime.reset();
+        DoTurn();
     }
 
 
-    public double getGyroHeading() {
+    public int getGyroHeading() {
         //Read the gyro and return its reading in degrees
 
         //this should pull heading angle from onboard IMU Gyro
@@ -351,7 +385,7 @@ public class Chassis extends OpMode {
         angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
 
         //return formatAngle(angles.angleUnit, angles.firstAngle);
-        return angles.firstAngle;
+        return -1 * (int) (angles.firstAngle);
     }
 
 
@@ -378,8 +412,8 @@ public class Chassis extends OpMode {
 
         ChassisMode_Current = ChassisMode_TeleOp;
 
-        double LDMpower_signum = Math.signum(LDMpower);
-        double RDMpower_signum = Math.signum(RDMpower);
+        double LDMpower_signum = Math.signum(-1 * LDMpower);
+        double RDMpower_signum = Math.signum(-1 * RDMpower);
 
         double LDM_new_Power = Math.abs(LDMpower);
         double RDM_new_Power = Math.abs(RDMpower);
@@ -419,6 +453,7 @@ public class Chassis extends OpMode {
         stinger.start();
         gripper.start();
         lifter.start();
+        extender.start();
         runtime.reset();
 
     }
@@ -436,11 +471,11 @@ public class Chassis extends OpMode {
         gripper.stop();
         stinger.stop();
         lifter.stop();
-
+        extender.stop();
     }
 
 
-    public int normalizeGyro(int heading) {
+    public int gyroNormalize(int heading) {
         // takes the full turns out of heading
         // gives us values from 0 to 180 for the right side of the robot
         // and values from 0 to -179 degrees for the left side of the robot
@@ -458,11 +493,11 @@ public class Chassis extends OpMode {
         return (degrees);
     }
 
-    public boolean InTol(int currHeading, int desiredHeading, int tol) {
+    public boolean gyroInTol(int currHeading, int desiredHeading, int tol) {
 
-        int upperTol = normalizeGyro(desiredHeading + tol);
-        int lowerTol = normalizeGyro(desiredHeading - tol);
-        int normalCurr = normalizeGyro(currHeading);
+        int upperTol = gyroNormalize(desiredHeading + tol);
+        int lowerTol = gyroNormalize(desiredHeading - tol);
+        int normalCurr = gyroNormalize(currHeading);
 
         float signumUpperTol = Math.signum(upperTol);
         float signumLowerTol = Math.signum(lowerTol);
