@@ -46,7 +46,7 @@ public class Lifter extends OpMode {
     public static final int LIFTPOS_STACK1 = 13000 / 2;
     public static final int LIFTPOS_STACK2 = 21000 / 2;
     public static final int LIFTPOS_MAX = 21000 / 2;
-    public static final int LIFTPOS_TOL = 100;
+    public static final int LIFTPOS_TOL = 200;
 
     int LIFTPOS_current = LIFTPOS_BOTTOM;   // This is the current tick counts of the lifter
     int LIFTPOS_CmdPos = LIFTPOS_BOTTOM;    // This is the commanded tick counts of the lifter

@@ -13,10 +13,11 @@ public class MrJ extends OpMode {
     public static int stage_0PreStart = 0;
     public static int stage_10GripBlock = 10;
     public static int stage_20StingerExtend = 20;
-    public static int stage_30BackUp = 30;
-    public static int stage_40ReadColorOfjewell = 40;
-    public static int stage_50ReturnToZero = 50;
-    public static int stage_60Return2Start = 60;
+    public static int stage_30PullOffStone = 30;
+    public static int stage_40Turn1 = 40;
+    public static int stage_50driveToFront = 50;
+    public static int stage_60TurnTwo = 60;
+    public static int stage_70driveToBox =70;
     public static int stage_150Done = 150;
 
     int CurrentStage = stage_0PreStart;
@@ -24,8 +25,8 @@ public class MrJ extends OpMode {
 
     Chassis robotChassis = new Chassis();
 
-    private double AUTO_MotorPower = .4;
-    private double AUTO_MotorPower_Fast = 6;
+    private double AUTO_MotorPower = .3333;
+    private double AUTO_MotorPower_Fast = .3;
     private int AUTO_NextHeading = 0;
 
     private int AUTO_RED_Factor = 1;
@@ -66,6 +67,7 @@ public class MrJ extends OpMode {
     public void start() {
         robotChassis.start();
         runtime.reset();
+        robotChassis.setMotorMode_RUN_WITHOUT_ENCODER();
     }
 
     /*
@@ -82,39 +84,43 @@ public class MrJ extends OpMode {
             robotChassis.gripper.cmd_Close();
             robotChassis.stinger.cmdDoExtend();
             if (runtime.seconds() > 2) {
-                CurrentStage = stage_40ReadColorOfjewell;
+                CurrentStage = stage_30PullOffStone;
             }
         }
 
-        /*if (CurrentStage == stage_30BackUp){
-            if (runtime.seconds() > 2){
-                robotChassis.cmdDrive(-AUTO_MotorPower_Fast,0,2);
-                CurrentStage = stage_40ReadColorOfjewell;
-            }
-        }*/
+        if (CurrentStage == stage_30PullOffStone){
+                robotChassis.cmdDrive(AUTO_MotorPower_Fast,0,30);
+                CurrentStage = stage_40Turn1;
 
-        if (CurrentStage == stage_40ReadColorOfjewell) {
-            if (runtime.seconds() > 2) {
+        }
+
+        if (CurrentStage == stage_40Turn1) {
+            if (robotChassis.getcmdComplete()) {
                 // Stay in this stage until complete move
-                robotChassis.cmdTurn(AUTO_MotorPower, -AUTO_MotorPower, 45);
-                CurrentStage = stage_50ReturnToZero;
+                robotChassis.cmdTurn(AUTO_MotorPower, -AUTO_MotorPower, 90);
+                CurrentStage = stage_50driveToFront;
             }
         }
 
-        if (CurrentStage == stage_50ReturnToZero) {
+        if (CurrentStage == stage_50driveToFront) {
             if (robotChassis.getcmdComplete()) {
-                robotChassis.cmdTurn(-AUTO_MotorPower, AUTO_MotorPower, 0);
-                CurrentStage = stage_60Return2Start;
+                robotChassis.cmdDrive( AUTO_MotorPower_Fast, 90, 36);
+                CurrentStage = stage_60TurnTwo;
             }
         }
 
-        if (CurrentStage == stage_60Return2Start) {
+        if (CurrentStage == stage_60TurnTwo) {
             if (robotChassis.getcmdComplete()) {
-                robotChassis.cmdDrive(AUTO_MotorPower_Fast, 0, 28);
+                robotChassis.cmdTurn(AUTO_MotorPower, -AUTO_MotorPower, 180);
+                CurrentStage = stage_70driveToBox;
+            }
+        }
+        if (CurrentStage == stage_70driveToBox) {
+            if (robotChassis.getcmdComplete()) {
+                robotChassis.cmdDrive( AUTO_MotorPower_Fast, 180, 36.5);
                 CurrentStage = stage_150Done;
             }
         }
-
         if (CurrentStage == stage_150Done) {
             if (robotChassis.getcmdComplete()) {
                 stop();

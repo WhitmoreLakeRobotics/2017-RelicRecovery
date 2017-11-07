@@ -265,14 +265,14 @@ public class Chassis extends OpMode {
 
         //goto chassis idle mode
         ChassisMode_Current = ChassisMode_Idle;
-
+        DriveMotorEncoderReset();
     }
 
     private void DoDrive() {
         /*
         * executes the logic for a single scan of driving straight by gyro
         */
-        double deltaHeading = TargetHeadingDeg - getGyroHeading();
+        double deltaHeading = TargetHeadingDeg - gyroNormalize(getGyroHeading());
 
         double leftPower = TargetMotorPowerLeft + (deltaHeading * chassis_KPGyroStraight);
         double rightPower = TargetMotorPowerRight - (deltaHeading * chassis_KPGyroStraight);
@@ -334,10 +334,10 @@ public class Chassis extends OpMode {
         LDM2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         RDM2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
-        //LDM1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        //RDM1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        //LDM2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        //RDM2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        LDM1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        RDM1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        LDM2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        RDM2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
     }
 
@@ -346,7 +346,7 @@ public class Chassis extends OpMode {
         called by other opmodes to start a drive straight by gyro command
          */
 
-        DriveMotorEncoderReset();
+        //DriveMotorEncoderReset();
         TargetHeadingDeg = headingDeg;
         TargetMotorPowerLeft = speed;
         TargetMotorPowerRight = speed;
