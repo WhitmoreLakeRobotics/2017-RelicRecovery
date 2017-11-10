@@ -5,14 +5,9 @@
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-
-//package org.firstinspires.ftc.teamcode;
-
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.GyroSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Func;
@@ -21,9 +16,9 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
-import java.lang.annotation.Target;
-import java.math.MathContext;
 import java.util.Locale;
+
+//package org.firstinspires.ftc.teamcode;
 
 @TeleOp(name = "Chassis", group = "Chassis")
 
@@ -374,6 +369,32 @@ public class Chassis extends OpMode {
         DoTurn();
     }
 
+    public int deltaHeading(int currHeading, int targetHeading) {
+
+
+        //float signumCurrHeading = Math.signum (currHeading);
+        //float signumTargetHeading = Math.signum (targetHeading);
+        int returnValue = 0;
+
+        //Positive value
+        if (currHeading >= 0 && targetHeading >= 0) {
+            returnValue = targetHeading - currHeading;
+        }
+        // one of each
+        else if (currHeading >= 0 && targetHeading <= 0) {
+            returnValue =  (targetHeading + currHeading);
+        }
+        //one of each again
+        else if (currHeading <= 0 && targetHeading >= 0) {
+            returnValue = -1 * (targetHeading + currHeading);
+        }
+        // both negative
+        else if (currHeading <= 0 && targetHeading <= 0) {
+            returnValue = targetHeading - currHeading;
+        }
+
+        return returnValue;
+    }
 
     public int getGyroHeading() {
         //Read the gyro and return its reading in degrees

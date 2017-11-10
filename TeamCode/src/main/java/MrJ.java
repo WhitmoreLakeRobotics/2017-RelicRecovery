@@ -1,6 +1,3 @@
-
-
-
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -17,7 +14,7 @@ public class MrJ extends OpMode {
     public static int stage_40Turn1 = 40;
     public static int stage_50driveToFront = 50;
     public static int stage_60TurnTwo = 60;
-    public static int stage_70driveToBox =70;
+    public static int stage_70driveToBox = 70;
     public static int stage_150Done = 150;
 
     int CurrentStage = stage_0PreStart;
@@ -88,9 +85,9 @@ public class MrJ extends OpMode {
             }
         }
 
-        if (CurrentStage == stage_30PullOffStone){
-                robotChassis.cmdDrive(AUTO_MotorPower_Fast,0,30);
-                CurrentStage = stage_40Turn1;
+        if (CurrentStage == stage_30PullOffStone) {
+            robotChassis.cmdDrive(AUTO_MotorPower_Fast, 0, 30);
+            CurrentStage = stage_40Turn1;
 
         }
 
@@ -104,7 +101,7 @@ public class MrJ extends OpMode {
 
         if (CurrentStage == stage_50driveToFront) {
             if (robotChassis.getcmdComplete()) {
-                robotChassis.cmdDrive( AUTO_MotorPower_Fast, 90, 36);
+                robotChassis.cmdDrive(AUTO_MotorPower_Fast, 90, 36);
                 CurrentStage = stage_60TurnTwo;
             }
         }
@@ -117,7 +114,7 @@ public class MrJ extends OpMode {
         }
         if (CurrentStage == stage_70driveToBox) {
             if (robotChassis.getcmdComplete()) {
-                robotChassis.cmdDrive( AUTO_MotorPower_Fast, 180, 36.5);
+                robotChassis.cmdDrive(AUTO_MotorPower_Fast, 180, 36.5);
                 CurrentStage = stage_150Done;
             }
         }
