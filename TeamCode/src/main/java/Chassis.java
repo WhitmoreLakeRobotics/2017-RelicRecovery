@@ -267,10 +267,10 @@ public class Chassis extends OpMode {
         /*
         * executes the logic for a single scan of driving straight by gyro
         */
-        double deltaHeading = TargetHeadingDeg - gyroNormalize(getGyroHeading());
+        double delta = - deltaHeading(gyroNormalize(getGyroHeading()),TargetHeadingDeg);
 
-        double leftPower = TargetMotorPowerLeft + (deltaHeading * chassis_KPGyroStraight);
-        double rightPower = TargetMotorPowerRight - (deltaHeading * chassis_KPGyroStraight);
+        double leftPower = TargetMotorPowerLeft - (delta * chassis_KPGyroStraight);
+        double rightPower = TargetMotorPowerRight + (delta * chassis_KPGyroStraight);
 
         if (leftPower < -1) {
             leftPower = -1;

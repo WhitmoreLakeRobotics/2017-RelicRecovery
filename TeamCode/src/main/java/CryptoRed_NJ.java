@@ -1,22 +1,23 @@
-
-
-
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 
-@Autonomous(name = "MrJ2", group = "")  // @Autonomous(...) is the other common choice
+@Autonomous(name = "Crypto-Red_NJ", group = "")  // @Autonomous(...) is the other common choice
 
-public class MrJ2 extends OpMode {
+public class CryptoRed_NJ extends OpMode {
 
     public static int stage_0PreStart = 0;
-    public static int stage_10GripBlock = 10;
+    public static int stage_05CloseGripper=5;
+    public static int stage_10LiftBlock = 10;
     public static int stage_20StingerExtend = 20;
-    public static int stage_30BackUp = 30;
-    public static int stage_40ReadColorOfjewell = 40;
-    public static int stage_50ReturnToZero = 50;
-    public static int stage_60Return2Start = 60;
+    public static int stage_30PullOffStone = 30;
+    public static int stage_40Turn1 = 40;
+    public static int stage_50driveToFront = 50;
+    public static int stage_60TurnTwo = 60;
+    public static int stage_70driveToBox = 70;
+	public static int stage_80OpenGripper = 80;
+	public static int stage_90Backup = 90;		
     public static int stage_150Done = 150;
 
     int CurrentStage = stage_0PreStart;
@@ -24,8 +25,8 @@ public class MrJ2 extends OpMode {
 
     Chassis robotChassis = new Chassis();
 
-    private double AUTO_MotorPower = .4;
-    private double AUTO_MotorPower_Fast = 6;
+    private double AUTO_TurnPower = .3333;
+    private double AUTO_DrivePower = .3;
     private int AUTO_NextHeading = 0;
 
     private int AUTO_RED_Factor = 1;
@@ -66,6 +67,7 @@ public class MrJ2 extends OpMode {
     public void start() {
         robotChassis.start();
         runtime.reset();
+        robotChassis.setMotorMode_RUN_WITHOUT_ENCODER();
     }
 
     /*
@@ -80,42 +82,56 @@ public class MrJ2 extends OpMode {
         if (CurrentStage == stage_0PreStart) {
             //Start Stage 1
             robotChassis.gripper.cmd_Close();
-            robotChassis.stinger.cmdDoExtend();
-            CurrentStage = stage_30BackUp;
+            //robotChassis.stinger.cmdDoExtend();
+            CurrentStage = stage_05CloseGripper;
         }
 
-        if (CurrentStage == stage_30BackUp) {
+        //close the close gripper
+        if (CurrentStage == stage_05CloseGripper) {
             if (runtime.seconds() > 2) {
-                robotChassis.cmdDrive(-AUTO_MotorPower_Fast, 0, 2);
-                CurrentStage = stage_40ReadColorOfjewell;
+                robotChassis.lifter.cmd_MoveToTarget(robotChassis.lifter.LIFTPOS_CARRY);
+                CurrentStage = stage_10LiftBlock;
             }
         }
 
-        if (CurrentStage == stage_40ReadColorOfjewell) {
-            if (robotChassis.getcmdComplete()) {
-                // Stay in this stage until complete move
-                robotChassis.cmdTurn(AUTO_MotorPower, -AUTO_MotorPower, 45);
-                CurrentStage = stage_50ReturnToZero;
+        //Lift the glyph
+        if (CurrentStage == stage_10LiftBlock) {
+            if (runtime.seconds() > 4) {
+                CurrentStage = stage_30PullOffStone;
             }
         }
 
-        if (CurrentStage == stage_50ReturnToZero) {
+        //Pull off the stone
+        if (CurrentStage == stage_30PullOffStone) {
+            robotChassis.cmdDrive(AUTO_DrivePower, 0, 30);
+            CurrentStage = stage_80OpenGripper;
+
+        }
+
+        // open the gripper
+		if (CurrentStage == stage_80OpenGripper) {
             if (robotChassis.getcmdComplete()) {
-                robotChassis.cmdTurn(-AUTO_MotorPower, AUTO_MotorPower, 0);
-                CurrentStage = stage_60Return2Start;
+                robotChassis.gripper.cmd_Open();
+                robotChassis.lifter.cmd_MoveToTarget(robotChassis.lifter.LIFTPOS_BOTTOM);
+                CurrentStage = stage_90Backup;
             }
         }
 
-        if (CurrentStage == stage_60Return2Start) {
-            if (robotChassis.getcmdComplete()) {
-                robotChassis.cmdDrive(AUTO_MotorPower_Fast, 0, 30);
+        // backup 1 inch to not be touching the glypy
+		if (CurrentStage == stage_90Backup) {
+            if (robotChassis.gripper.Is_Open()) {
+                robotChassis.cmdDrive(-AUTO_DrivePower, 0, 2.0);
                 CurrentStage = stage_150Done;
             }
         }
+		
 
         if (CurrentStage == stage_150Done) {
             if (robotChassis.getcmdComplete()) {
-                stop();
+                if (runtime.seconds()> 25){
+                    stop();
+                }
+
             }
         }
     }

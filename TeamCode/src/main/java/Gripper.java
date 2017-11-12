@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.vuforia.STORAGE_TYPE;
 
 
 @TeleOp(name = "Gripper", group = "")  // @Autonomous(...) is the other common choice
@@ -68,9 +69,14 @@ public class Gripper extends OpMode {
     private final double SERVO_POS_RIGHT_OPEN = .5;
     private final double SERVO_POS_RIGHT_CLOSED = 1;
 
+
+    private final double SERVO_POS_STOW = 0;
+    private final double SERVO_POS_READY = .8;
+    private final double SERVO_POS_CLAMP = 1;
+
     private Servo ServoGripperL = null;
     private Servo ServoGripperR = null;
-
+    private Servo ServoRelic = null;
     /*
      * Code to run ONCE when the driver hits INIT
      */
@@ -81,6 +87,8 @@ public class Gripper extends OpMode {
 
         ServoGripperR = hardwareMap.servo.get("Servo_GripperR");
         ServoGripperL = hardwareMap.servo.get("Servo_GripperL");
+        ServoRelic = hardwareMap.servo.get("Servo_Relic");
+
         /* eg: Initialize the hardware variables. Note that the strings used here as parameters
          * to 'get' must correspond to the names assigned during the robot configuration
          * step (using the FTC Robot Controller app on the phone).
@@ -204,4 +212,16 @@ public class Gripper extends OpMode {
         return (Gripper_current == GRIPPER_MODE_OPEN);
     }
 
+
+    public void cmd_Stow (){
+    ServoRelic.setPosition(SERVO_POS_STOW);
+
+    }
+    public void cmd_Ready  (){
+            ServoRelic.setPosition(SERVO_POS_READY);
+
+    }
+    public void cmd_Clamp  (){
+        ServoRelic.setPosition(SERVO_POS_CLAMP);
+    }
 }

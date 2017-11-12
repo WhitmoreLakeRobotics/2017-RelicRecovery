@@ -155,9 +155,24 @@ public class TeleOp_8492 extends OpMode {
         } else {
             robotChassis.doTeleOp(joystickMath(gamepad1.left_stick_y * 0.70), joystickMath(gamepad1.right_stick_y * 0.70));
         }
+        if (gamepad2.dpad_down) {
+            robotChassis.gripper.cmd_Stow();
+
+        }
+
+        if (gamepad2.dpad_right) {
+            robotChassis.gripper.cmd_Ready();
+
+        }
+        if (gamepad2.dpad_up) {
+            robotChassis.gripper.cmd_Clamp();
+
+        }
+
 
 
     }
+
 
     /*
         * Code to run ONCE after the driver hits STOP
