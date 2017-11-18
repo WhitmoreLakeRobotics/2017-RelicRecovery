@@ -3,7 +3,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 
-@Autonomous(name = "RecoveryBlue", group = "")  // @Autonomous(...) is the other common choice
+//@Autonomous(name = "RecoveryBlue", group = "")  // @Autonomous(...) is the other common choice
 
 public class RecoveryBlue extends OpMode {
 
@@ -82,7 +82,7 @@ public class RecoveryBlue extends OpMode {
         if (CurrentStage == stage_0PreStart) {
             //Start Stage 1
             robotChassis.gripper.cmd_Close();
-            //robotChassis.stinger.cmdDoExtend();
+            //robotChassis.stinger.cmdDoJ1Extend();
             CurrentStage = stage_05CloseGripper;
         }
 

@@ -10,7 +10,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import com.vuforia.STORAGE_TYPE;
 
 
-@TeleOp(name = "Gripper", group = "")  // @Autonomous(...) is the other common choice
+//@TeleOp(name = "Gripper", group = "")  // @Autonomous(...) is the other common choice
 
 public class Gripper extends OpMode {
 
@@ -153,7 +153,7 @@ public class Gripper extends OpMode {
         // check timer to see if we are closed
         // if so set Gripper_current = Gripper_closed
         // warning calling to get server current position is only going to return last set position
-        if (close_timer.time() >= GRIPPER_CLOSE_TIME_MS) {
+        if (close_timer.milliseconds() >= GRIPPER_CLOSE_TIME_MS) {
             Gripper_current = GRIPPER_MODE_CLOSED;
             close_timer.reset();
         }
@@ -164,7 +164,7 @@ public class Gripper extends OpMode {
     private void Do_opening() {
         //check timer to see if we are open
         // if so set Gripper_current - Gripper_open
-        if (open_timer.time() >= GRIPPER_OPEN_TIME_MS) {
+        if (open_timer.milliseconds() >= GRIPPER_OPEN_TIME_MS) {
             Gripper_current = GRIPPER_MODE_OPEN;
             open_timer.reset();
         }

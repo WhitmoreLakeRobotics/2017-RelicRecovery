@@ -12,7 +12,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import java.util.Set;
 
 
-@TeleOp(name = "Lifter", group = "CHASSIS")  // @Autonomous(...) is the other common choice
+//@TeleOp(name = "Lifter", group = "CHASSIS")  // @Autonomous(...) is the other common choice
 
 public class Lifter extends OpMode {
     /* Declare OpMode members. */
@@ -70,7 +70,7 @@ public class Lifter extends OpMode {
      */
     @Override
     public void init() {
-        telemetry.addData("Status", "Initialized");
+       // telemetry.addData("Status", "Initialized");
 
         /* eg: Initialize the hardware variables. Note that the strings used here as parameters
          * to 'get' must correspond to the names assigned during the robot configuration
@@ -149,7 +149,7 @@ public class Lifter extends OpMode {
         // if (newPower != LIFTPOWER_current) {
         LIFTPOWER_current = newPower;
         Motor_Lift.setPower(newPower);
-        telemetry.addLine(" LIFTPOWER_current= " + LIFTPOWER_current + " curr " + LIFTPOS_current);
+       // telemetry.addLine(" LIFTPOWER_current= " + LIFTPOWER_current + " curr " + LIFTPOS_current);
         // }
     }
 

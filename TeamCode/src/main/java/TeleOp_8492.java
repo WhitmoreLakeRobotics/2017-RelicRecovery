@@ -78,10 +78,10 @@ public class TeleOp_8492 extends OpMode {
 
 
         if (gamepad1.a && !gamepad1.b) {
-            robotChassis.stinger.cmdDoExtend();
+            robotChassis.stinger.cmdDoJ1Extend();
         }
         if (gamepad1.b && !gamepad1.a) {
-            robotChassis.stinger.cmdDoRetract();
+            robotChassis.stinger.cmdDoJ1Retract();
         }
 
         if (gamepad2.right_bumper && !gamepad2.left_bumper) {

@@ -25,8 +25,8 @@ public class RecoveryRed_NJ extends OpMode {
 
     Chassis robotChassis = new Chassis();
 
-    private double AUTO_TurnPower = .3333;
-    private double AUTO_DrivePower = .3;
+    private double AUTO_TurnPower = .4;
+    private double AUTO_DrivePower = .4;
     private int AUTO_NextHeading = 0;
 
     private int AUTO_RED_Factor = 1;
@@ -82,8 +82,9 @@ public class RecoveryRed_NJ extends OpMode {
         if (CurrentStage == stage_0PreStart) {
             //Start Stage 1
             robotChassis.gripper.cmd_Close();
-            //robotChassis.stinger.cmdDoExtend();
+            //robotChassis.stinger.cmdDoJ1Extend();
             CurrentStage = stage_05CloseGripper;
+
         }
 
         //close the close gripper
@@ -103,16 +104,16 @@ public class RecoveryRed_NJ extends OpMode {
 
         //Pull off the stone
         if (CurrentStage == stage_30PullOffStone) {
-            robotChassis.cmdDrive(AUTO_DrivePower, 0, 30);
+            robotChassis.cmdDrive(AUTO_DrivePower, 0, 27);
             CurrentStage = stage_40Turn1;
 
         }
 
-        //Turn 90 degrees
+        //Turn 45 degrees
         if (CurrentStage == stage_40Turn1) {
             if (robotChassis.getcmdComplete()) {
                 // Stay in this stage until complete move
-                robotChassis.cmdTurn(AUTO_TurnPower, -AUTO_TurnPower, 90);
+                robotChassis.cmdTurn(AUTO_TurnPower, -AUTO_TurnPower, 55);
                 CurrentStage = stage_50driveToFront;
             }
         }
@@ -120,7 +121,7 @@ public class RecoveryRed_NJ extends OpMode {
         //drive to the front of the box
         if (CurrentStage == stage_50driveToFront) {
             if (robotChassis.getcmdComplete()) {
-                robotChassis.cmdDrive(AUTO_DrivePower, 90, 16);
+                robotChassis.cmdDrive(AUTO_DrivePower, 55, 12);
                 CurrentStage = stage_80OpenGripper;
             }
         }
@@ -136,10 +137,10 @@ public class RecoveryRed_NJ extends OpMode {
             }
         }
 
-        // backup 1 inch to not be touching the glypy
+        // backup 1 inch to not be touching the glyph
 		if (CurrentStage == stage_90Backup) {
             if (robotChassis.gripper.Is_Open()) {
-                robotChassis.cmdDrive(-AUTO_DrivePower, 90, 2.0);
+                robotChassis.cmdDrive(-AUTO_DrivePower, 55, 2.0);
                 CurrentStage = stage_150Done;
             }
         }

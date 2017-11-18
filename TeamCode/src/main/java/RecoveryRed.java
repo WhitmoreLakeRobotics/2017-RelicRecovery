@@ -82,7 +82,7 @@ public class RecoveryRed extends OpMode {
         if (CurrentStage == stage_0PreStart) {
             //Start Stage 1
             robotChassis.gripper.cmd_Close();
-            //robotChassis.stinger.cmdDoExtend();
+            //robotChassis.stinger.cmdDoJ1Extend();
             CurrentStage = stage_05CloseGripper;
         }
 

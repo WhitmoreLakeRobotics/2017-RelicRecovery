@@ -10,7 +10,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 
-@TeleOp(name = "Extender", group = "")  // @Autonomous(...) is the other common choice
+//@TeleOp(name = "Extender", group = "")  // @Autonomous(...) is the other common choice
 
 public class Extender extends OpMode {
 

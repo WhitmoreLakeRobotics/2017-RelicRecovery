@@ -20,12 +20,14 @@ import java.util.Locale;
 
 //package org.firstinspires.ftc.teamcode;
 
-@TeleOp(name = "Chassis", group = "Chassis")
+//@TeleOp(name = "Chassis", group = "Chassis")
 
 public class Chassis extends OpMode {
     // basic modes of operation for the chassis
 
 //@Disabled                            // Uncomment this to add to the opmode list
+
+    public enum gameColor {UNKNOWN, BLUE, RED};
 
     public static final int ChassisMode_Stop = 0;
     public static final int ChassisMode_Drive = 1;
@@ -100,9 +102,9 @@ public class Chassis extends OpMode {
     @Override
     public void init() {
 
-        telemetry.addData("Status", "Initialized");
+       // telemetry.addData("Status", "Initialized");
         composeTelemetry();
-        telemetry.log().add("Waiting for start...");
+        //telemetry.log().add("Waiting for start...");
 
 
         RDM1 = hardwareMap.dcMotor.get("RDM1");
@@ -239,7 +241,7 @@ public class Chassis extends OpMode {
 
 
         telemetry.update();
-        // telemetry.addLine("chassisMode" + ChassisMode_Current);
+        telemetry.addLine("chassisMode" + ChassisMode_Current);
 
     }
 
@@ -297,11 +299,11 @@ public class Chassis extends OpMode {
         //if ((inchesTraveled >= (Math.abs(TargetDistanceInches) - chassis_driveTolInches)) ||
         //        (runtime.milliseconds() > chassis_driveTimeout_mS))
 
-        if (inchesTraveled >= (Math.abs(TargetDistanceInches) - chassis_driveTolInches)) {
+        if (inchesTraveled >= Math.abs(TargetDistanceInches - chassis_driveTolInches)) {
             cmdComplete = true;
             Dostop();
         }
-        telemetry.addLine("inchesTraveled = " + inchesTraveled);
+        telemetry.addLine(" MP " + TargetMotorPowerLeft +" IT = " + inchesTraveled);
 
     }
 
@@ -313,12 +315,9 @@ public class Chassis extends OpMode {
         int currHeading = gyroNormalize(getGyroHeading());
         if (gyroInTol(currHeading, TargetHeadingDeg, chassis_GyroHeadingTol)) {
             //We are there stop
-            LDM1.setPower(0);
-            LDM2.setPower(0);
-            RDM1.setPower(0);
-            RDM2.setPower(0);
             cmdComplete = true;
-            ChassisMode_Current = ChassisMode_Stop;
+            //ChassisMode_Current = ChassisMode_Stop;
+            Dostop();
         }
     }
 
@@ -341,13 +340,14 @@ public class Chassis extends OpMode {
         called by other opmodes to start a drive straight by gyro command
          */
 
-        //DriveMotorEncoderReset();
+        ChassisMode_Current = ChassisMode_Drive;
         TargetHeadingDeg = headingDeg;
         TargetMotorPowerLeft = speed;
         TargetMotorPowerRight = speed;
         TargetDistanceInches = inches;
         runtime.reset();
         cmdComplete = false;
+        DriveMotorEncoderReset();
         DoDrive();
     }
 
@@ -357,9 +357,10 @@ public class Chassis extends OpMode {
     }
 
     public void cmdTurn(double LSpeed, double RSpeed, int headingDeg) {
-
+        //can only be called one time per movement of the chassis
         ChassisMode_Current = ChassisMode_Turn;
         TargetHeadingDeg = headingDeg;
+        DriveMotorEncoderReset();
         LDM1.setPower(LSpeed);
         LDM2.setPower(LSpeed);
         RDM1.setPower(RSpeed);

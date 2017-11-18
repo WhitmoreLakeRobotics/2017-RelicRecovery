@@ -3,21 +3,14 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 
-@Autonomous(name = "Crypto-Red_NJ", group = "")  // @Autonomous(...) is the other common choice
+@Autonomous(name = "Jewels_test", group = "")  // @Autonomous(...) is the other common choice
 
-public class CryptoRed_NJ extends OpMode {
+public class Jewels_test extends OpMode {
 
     public static int stage_0PreStart = 0;
-    public static int stage_05CloseGripper=5;
-    public static int stage_10LiftBlock = 10;
     public static int stage_20StingerExtend = 20;
-    public static int stage_30PullOffStone = 30;
-    public static int stage_40Turn1 = 40;
-    public static int stage_50driveToFront = 50;
-    public static int stage_60TurnTwo = 60;
-    public static int stage_70driveToBox = 70;
-	public static int stage_80OpenGripper = 80;
-	public static int stage_90Backup = 90;		
+    public static int stage_70Turn = 70;
+    public static int stage_140Turn = 140;
     public static int stage_150Done = 150;
 
     int CurrentStage = stage_0PreStart;
@@ -25,7 +18,7 @@ public class CryptoRed_NJ extends OpMode {
 
     Chassis robotChassis = new Chassis();
 
-    private double AUTO_TurnPower = .3333;
+    private double AUTO_TurnPower = .2;
     private double AUTO_DrivePower = .3;
     private int AUTO_NextHeading = 0;
 
@@ -81,56 +74,32 @@ public class CryptoRed_NJ extends OpMode {
 
         if (CurrentStage == stage_0PreStart) {
             //Start Stage 1
-            robotChassis.gripper.cmd_Close();
-            //robotChassis.stinger.cmdDoJ1Extend();
-            CurrentStage = stage_05CloseGripper;
-        }
-
-        //close the close gripper
-        if (CurrentStage == stage_05CloseGripper) {
-            if (runtime.seconds() > 2) {
-                robotChassis.lifter.cmd_MoveToTarget(robotChassis.lifter.LIFTPOS_CARRY);
-                CurrentStage = stage_10LiftBlock;
-            }
-        }
-
-        //Lift the glyph
-        if (CurrentStage == stage_10LiftBlock) {
-            if (runtime.seconds() > 4) {
-                CurrentStage = stage_30PullOffStone;
-            }
-        }
-
-        //Pull off the stone
-        if (CurrentStage == stage_30PullOffStone) {
-            robotChassis.cmdDrive(AUTO_DrivePower, 0, 30);
-            CurrentStage = stage_80OpenGripper;
+            robotChassis.stinger.cmdDoJ1Extend();
+            CurrentStage = stage_70Turn;
 
         }
 
-        // open the gripper
-		if (CurrentStage == stage_80OpenGripper) {
+        if (CurrentStage == stage_70Turn) {
             if (robotChassis.getcmdComplete()) {
-                robotChassis.gripper.cmd_Open();
-                robotChassis.lifter.cmd_MoveToTarget(robotChassis.lifter.LIFTPOS_BOTTOM);
-                CurrentStage = stage_90Backup;
+                // Stay in this stage until complete move
+                robotChassis.cmdTurn(-AUTO_TurnPower, AUTO_TurnPower, -45);
+                CurrentStage = stage_140Turn;
+
             }
         }
-
-        // backup 1 inch to not be touching the glypy
-		if (CurrentStage == stage_90Backup) {
-            if (robotChassis.gripper.Is_Open()) {
-                robotChassis.cmdDrive(-AUTO_DrivePower, 0, 2.0);
+        if (CurrentStage == stage_140Turn) {
+            if (robotChassis.getcmdComplete()) {
+                // Stay in this stage until complete move
+                robotChassis.cmdTurn(AUTO_TurnPower, -AUTO_TurnPower, 90);
+                robotChassis.stinger.cmdDoJ1Retract();
                 CurrentStage = stage_150Done;
             }
         }
-		
+
 
         if (CurrentStage == stage_150Done) {
             if (robotChassis.getcmdComplete()) {
-                if (runtime.seconds()> 25){
-                    stop();
-                }
+                stop();
 
             }
         }

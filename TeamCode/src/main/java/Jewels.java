@@ -11,22 +11,24 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 public class Jewels extends OpMode {
 
     public static int stage_0PreStart = 0;
-    public static int stage_10GripBlock = 10;
-    public static int stage_20StingerExtend = 20;
-    public static int stage_30ReadPlatformColor = 30;
+    public static int stage_05J1Retracted = 5;
+    public static int stage_10J1Angled = 10;
+    public static int stage_20J2Straight = 20;
+    public static int stage_30J1Extend = 30;
     public static int stage_40ReadColorOfjewell = 40;
-    public static int stage_50Knockjewelloff = 50;
-    public static int stage_60Return2Start = 60;
-    public static int stage_70Turn1 = 70;
-    public static int stage_80MoveFoward = 80;
-    public static int stage_90Turn2 = 90;
-    public static int stage_100MoveFoward7 = 100;
-    public static int stage_110DropBlock = 110;
-    public static int stage_120MoveBack1 = 120;
+    public static int stage_50J2CCW = 50;
+    public static int stage_51J2CW = 51;
+    public static int stage_60J2Straight = 60;
+    public static int stage_70J1Angled = 70;
+    public static int stage_80J2CW = 80;
+    public static int stage_90J1Retract = 90;
     public static int stage_150Done = 150;
 
+    boolean JewelsDone = false;
+    boolean robotChassisWasNull = false;
     int CurrentStage = stage_0PreStart;
 
+    private Chassis.gameColor stoneColor = Chassis.gameColor.UNKNOWN;
 
     Chassis robotChassis = new Chassis();
 
@@ -39,23 +41,16 @@ public class Jewels extends OpMode {
     @Override
     public void init() {
 
-        robotChassis.hardwareMap = hardwareMap;
-        robotChassis.telemetry = telemetry;
-        robotChassis.init();
-        telemetry.addData("Status", "Initialized");
+       // if (robotChassis == null) {
+            robotChassis = new Chassis();
+            robotChassis.hardwareMap = hardwareMap;
+            robotChassis.telemetry = telemetry;
+            robotChassis.init();
+            robotChassisWasNull = true;
+        //}
 
+        stoneColor = Chassis.gameColor.UNKNOWN;
 
-        /* eg: Initialize the hardware variables. Note that the strings used here as parameters
-         * to 'get' must correspond to the names assigned during the robot configuration
-         * step (using the FTC Robot Controller app on the phone).
-         */
-
-
-        // eg: Set the drive motor directions:
-        // Reverse the motor that runs backwards when connected directly to the battery
-        // leftMotor.setDirection(DcMotor.Direction.FORWARD); // Set to REVERSE if using AndyMark motors
-        //  rightMotor.setDirection(DcMotor.Direction.REVERSE);// Set to FORWARD if using AndyMark motors
-        // telemetry.addData("Status", "Initialized");
     }
 
     /*
@@ -63,7 +58,9 @@ public class Jewels extends OpMode {
      */
     @Override
     public void init_loop() {
-        robotChassis.init_loop();
+        if (robotChassisWasNull) {
+            robotChassis.init_loop();
+        }
     }
 
     /*
@@ -71,10 +68,10 @@ public class Jewels extends OpMode {
      */
     @Override
     public void start() {
-
-        robotChassis.start();
         runtime.reset();
-        //shootTrigger.setPosition(Settings.reset);
+        if (robotChassisWasNull) {
+            robotChassis.start();
+        }
     }
 
     /*
@@ -82,82 +79,139 @@ public class Jewels extends OpMode {
      */
     @Override
     public void loop() {
-        telemetry.addData("Stone", robotChassis.IsBlue() + " " + robotChassis.IsRed());
-        telemetry.addData("Jewel", robotChassis.stinger.IsBlue() + " " + robotChassis.stinger.IsRed());
-        robotChassis.loop();
+
+        if (robotChassisWasNull) {
+            robotChassis.loop();
+        }
 
         if (CurrentStage == stage_0PreStart) {
-            //Start Stage 1
+            robotChassis.stinger.cmdDoJ1Retract();
+            robotChassis.stinger.cmdDoJ2STOW();
+            CurrentStage = stage_05J1Retracted;
+        }
 
-            robotChassis.gripper.cmd_Close();
-            robotChassis.stinger.cmdDoExtend();
-            if (robotChassis.gripper.Is_Closed() &&
-                    robotChassis.stinger.IsExtended()) {
+        if (CurrentStage == stage_05J1Retracted) {
+            if (robotChassis.stinger.IsJ1Retracted()) {
+                CurrentStage = stage_10J1Angled;
+                robotChassis.stinger.cmdDoJ1Angle();
+            }
+        }
+
+
+        if (CurrentStage == stage_10J1Angled) {
+            if (robotChassis.stinger.IsJ1Angled()) {
+                robotChassis.stinger.cmdDoJ2Straight();
+                CurrentStage = stage_20J2Straight;
+            }
+        }
+
+
+        if (CurrentStage == stage_20J2Straight) {
+            if (robotChassis.stinger.IsJ2Striaght()) {
+                robotChassis.stinger.cmdDoJ1Extend();
+                CurrentStage = stage_30J1Extend;
+            }
+        }
+
+        if (CurrentStage == stage_30J1Extend) {
+            if (robotChassis.stinger.IsJ1Extended()) {
                 CurrentStage = stage_40ReadColorOfjewell;
-
             }
         }
 
 
         if (CurrentStage == stage_40ReadColorOfjewell) {
-            // Stay in this stage until complete move
-            if (robotChassis.IsBlue()) {
-                if (robotChassis.stinger.IsBlue()) {
-                    robotChassis.cmdTurn(.5, -.5, 45);
-                    CurrentStage = stage_50Knockjewelloff;
-                } else if (robotChassis.stinger.IsRed()) {
-                    robotChassis.cmdTurn(-.5, .5, -45);
-                    CurrentStage = stage_50Knockjewelloff;
-                } else {
-                    //need to decide skip
-                }
-            } else if (robotChassis.IsRed()) {
-                if (robotChassis.stinger.IsRed()) {
-                    robotChassis.cmdTurn(.5, -.5, 45);
-                    CurrentStage = stage_50Knockjewelloff;
-                } else if (robotChassis.stinger.IsBlue()) {
-                    robotChassis.cmdTurn(-.5, .5, -45);
-                    CurrentStage = stage_50Knockjewelloff;
-                } else {
-                    //need to decide skip
-                    CurrentStage = stage_150Done;
-                }
-            }
-        }
-        if (CurrentStage == stage_50Knockjewelloff) {
-            if (robotChassis.getcmdComplete()) {
-                CurrentStage = stage_60Return2Start;
-            }
-        }
 
+            if (robotChassis.stinger.IsBlue() && stoneColor == Chassis.gameColor.BLUE) {
+                CurrentStage = stage_50J2CCW;
+                robotChassis.stinger.cmdDoJ2CCW();
 
-        if (CurrentStage == stage_60Return2Start) {
-            if (robotChassis.getGyroHeading() < 0) {
-                robotChassis.cmdTurn(.5, -.5, 0);
+            } else if (robotChassis.stinger.IsBlue() && stoneColor == Chassis.gameColor.RED) {
+
+                CurrentStage = stage_51J2CW;
+                robotChassis.stinger.cmdDoJ2CW();
+
+            } else if (robotChassis.stinger.IsRed() && stoneColor == Chassis.gameColor.RED) {
+
+                CurrentStage = stage_50J2CCW;
+                robotChassis.stinger.cmdDoJ2CCW();
+
+            } else if (robotChassis.stinger.IsRed() && stoneColor == Chassis.gameColor.BLUE) {
+
+                CurrentStage = stage_51J2CW;
+                robotChassis.stinger.cmdDoJ2CW();
+
+            } else {
+                // We are unsure what color we are dealing with.
+                CurrentStage = stage_70J1Angled;
+                robotChassis.stinger.cmdDoJ1Angle();
             }
 
-            if (robotChassis.getGyroHeading() > 0) {
-                robotChassis.cmdTurn(.5, -.5, 0);
+        }
+
+        if (CurrentStage == stage_50J2CCW) {
+            if (robotChassis.stinger.IsJ2CCW()) {
+                CurrentStage = stage_60J2Straight;
+                robotChassis.stinger.cmdDoJ2Straight();
             }
-            CurrentStage = stage_70Turn1;
         }
 
-
-        if (CurrentStage == stage_120MoveBack1) {
-            robotChassis.cmdDrive(-.5, 0, 12);
-            CurrentStage = stage_150Done;
+        if (CurrentStage == stage_51J2CW) {
+            if (robotChassis.stinger.IsJ2CW()) {
+                CurrentStage = stage_60J2Straight;
+                robotChassis.stinger.cmdDoJ2Straight();
+            }
         }
+
+        if (CurrentStage == stage_60J2Straight) {
+            if (robotChassis.stinger.IsJ2Striaght()) {
+                CurrentStage = stage_70J1Angled;
+                robotChassis.stinger.cmdDoJ1Angle();
+            }
+        }
+
+        if (CurrentStage == stage_70J1Angled) {
+            if (robotChassis.stinger.IsJ1Angled()) {
+                CurrentStage = stage_80J2CW;
+                robotChassis.stinger.cmdDoJ2STOW();
+            }
+        }
+
+        if (CurrentStage == stage_80J2CW) {
+            if (robotChassis.stinger.IsJ2STOWED()) {
+                CurrentStage = stage_90J1Retract;
+                robotChassis.stinger.cmdDoJ1Retract();
+            }
+        }
+
+        if (CurrentStage == stage_90J1Retract) {
+            if (robotChassis.stinger.IsJ1Retracted()) {
+                CurrentStage = stage_150Done;
+            }
+        }
+
         if (CurrentStage == stage_150Done) {
-            robotChassis.stop();
+            JewelsDone = true;
         }
     }
+
+
+    public void setStoneColor(Chassis.gameColor newColor) {
+        stoneColor = newColor;
+    }
+
+    public boolean IsJewelsDone() {
+        return (JewelsDone);
+    }
+
 
     /*
      * Code to run ONCE after the driver hits STOP
      */
     @Override
     public void stop() {
-        robotChassis.stop();
+        if (robotChassisWasNull) {
+            robotChassis.stop();
+        }
     }
-
 }
