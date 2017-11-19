@@ -4,7 +4,6 @@
 
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -42,8 +41,8 @@ public class Stinger extends OpMode {
     /* Declare OpMode members. */
     private ElapsedTime runtime = new ElapsedTime();
 
-    private final int EXTEND_TIME_MS = 1000;
-    private final int RETRACT_TIME_MS = 1000;
+    private final double EXTEND_TIME_MS = 1000;
+    private final double RETRACT_TIME_MS = 1000;
 
     private ElapsedTime Stingertime = new ElapsedTime();
     public static final int STINGER_MODE_UNKNOWN = 0;
@@ -129,6 +128,7 @@ public class Stinger extends OpMode {
     @Override
     public void start() {
         cmdDoJ1Retract();
+        cmdDoJ2STOW();
         runtime.reset();
     }
 
@@ -137,7 +137,7 @@ public class Stinger extends OpMode {
      */
     @Override
     public void loop() {
-        //telemetry.addData("Status", "Running: " + runtime.toString());
+        telemetry.addData("StingerMode", " " + StingerMode_Current);
 
 
         if (StingerMode_Current == STINGER_MODE_J1_EXTENDING) {
@@ -178,17 +178,18 @@ public class Stinger extends OpMode {
      */
     @Override
     public void stop() {
+
     }
 
 
     private void DoJ1Extending() {
-        if (Stingertime.milliseconds() >= EXTEND_TIME_MS) {
+        if (Stingertime.milliseconds() > EXTEND_TIME_MS) {
             StingerMode_Current = STINGER_MODE_J1_EXTENDED;
         }
     }
 
     private void DoJ1Angling() {
-        if (Stingertime.milliseconds() >= EXTEND_TIME_MS) {
+        if (Stingertime.milliseconds() > EXTEND_TIME_MS) {
             StingerMode_Current = STINGER_MODE_J1_ANGLED;
 
         }
@@ -196,33 +197,33 @@ public class Stinger extends OpMode {
 
 
     private void DoJ1Retracting() {
-        if (Stingertime.milliseconds() >= RETRACT_TIME_MS) {
+        if (Stingertime.milliseconds() > RETRACT_TIME_MS) {
             StingerMode_Current = STINGER_MODE_J1_RETRACTED;
         }
     }
 
     private void DoJ2CCWING() {
-        if (Stingertime.milliseconds() >= EXTEND_TIME_MS) {
+        if (Stingertime.milliseconds() > EXTEND_TIME_MS) {
             StingerMode_Current = STINGER_MODE_J2_CCW;
         }
     }
 
     private void DoJ2STRAIGHTENING() {
-        if (Stingertime.milliseconds() >= EXTEND_TIME_MS) {
+        if (Stingertime.milliseconds() > EXTEND_TIME_MS) {
             StingerMode_Current = STINGER_MODE_J2_STRAIGHT;
         }
     }
 
 
     private void DoJ2CWING() {
-        if (Stingertime.milliseconds() >= RETRACT_TIME_MS) {
+        if (Stingertime.milliseconds() > RETRACT_TIME_MS) {
             StingerMode_Current = STINGER_MODE_J2_CW;
         }
     }
 
 
     private void DoJ2STOWING() {
-        if (Stingertime.milliseconds() >= RETRACT_TIME_MS) {
+        if (Stingertime.milliseconds() > RETRACT_TIME_MS) {
             StingerMode_Current = STINGER_MODE_J2_STOW;
         }
     }
@@ -233,7 +234,7 @@ public class Stinger extends OpMode {
         ServoJ1Stinger.setPosition(STINGER_POS_J1_EXTENDED);
         StingerMode_Current = STINGER_MODE_J1_EXTENDING;
         Stingertime.reset();
-        Stingertime.startTime();
+        //Stingertime.startTime();
 
     }
 
@@ -242,7 +243,7 @@ public class Stinger extends OpMode {
         ServoJ1Stinger.setPosition(STINGER_POS_J1_RETRACTED);
         StingerMode_Current = STINGER_MODE_J1_RETRACTING;
         Stingertime.reset();
-        Stingertime.startTime();
+        //Stingertime.startTime();
 
     }
 
@@ -250,7 +251,7 @@ public class Stinger extends OpMode {
         ServoJ1Stinger.setPosition(STINGER_POS_J1_ANGELED);
         StingerMode_Current = STINGER_MODE_J1_ANGLEING;
         Stingertime.reset();
-        Stingertime.startTime();
+        //Stingertime.startTime();
     }
 
     public void cmdDoJ2CCW() {
@@ -258,7 +259,7 @@ public class Stinger extends OpMode {
         ServoJ2Stinger.setPosition(STINGER_POS_J2_CCW);
         StingerMode_Current = STINGER_MODE_J2_CCWING;
         Stingertime.reset();
-        Stingertime.startTime();
+        //Stingertime.startTime();
 
     }
 
@@ -267,7 +268,7 @@ public class Stinger extends OpMode {
         ServoJ2Stinger.setPosition(STINGER_POS_J2_STRAIGHT);
         StingerMode_Current = STINGER_MODE_J2_STRAIGHTENING;
         Stingertime.reset();
-        Stingertime.startTime();
+        //Stingertime.startTime();
 
     }
 
@@ -275,7 +276,7 @@ public class Stinger extends OpMode {
         ServoJ2Stinger.setPosition(STINGER_POS_J2_STOW);
         StingerMode_Current = STINGER_MODE_J2_STOWING;
         Stingertime.reset();
-        Stingertime.startTime();
+        //Stingertime.startTime();
 
     }
 
@@ -284,10 +285,9 @@ public class Stinger extends OpMode {
         ServoJ2Stinger.setPosition(STINGER_POS_J2_CW);
         StingerMode_Current = STINGER_MODE_J2_CWING;
         Stingertime.reset();
-        Stingertime.startTime();
+        //Stingertime.startTime();
 
     }
-
 
 
     //returns true if stinger is retracted

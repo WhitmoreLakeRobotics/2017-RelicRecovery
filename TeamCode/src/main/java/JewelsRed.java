@@ -6,9 +6,9 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 
-//@Autonomous(name = "Jewels", group = "")  // @Autonomous(...) is the other common choice
+@Autonomous(name = "JewelsRed", group = "")  // @Autonomous(...) is the other common choice
 
-public class Jewels extends OpMode {
+public class JewelsRed extends OpMode {
 
     public static int stage_0PreStart = 0;
     public static int stage_05J1Retracted = 5;
@@ -28,7 +28,7 @@ public class Jewels extends OpMode {
     boolean robotChassisWasNull = false;
     int CurrentStage = stage_0PreStart;
 
-    private Chassis.gameColor stoneColor = Chassis.gameColor.UNKNOWN;
+    private Chassis.gameColor stoneColor = Chassis.gameColor.RED;
 
     Chassis robotChassis = new Chassis();
 
@@ -49,7 +49,7 @@ public class Jewels extends OpMode {
             robotChassisWasNull = true;
         //}
 
-        stoneColor = Chassis.gameColor.UNKNOWN;
+        stoneColor = Chassis.gameColor.RED;
 
     }
 
