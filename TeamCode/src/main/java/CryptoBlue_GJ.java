@@ -1,12 +1,13 @@
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.RobotLog;
 
 
-//@Autonomous(name = "Crypto-Blue_NJ", group = "")  // @Autonomous(...) is the other common choice
+@Autonomous(name = "Crypto-Blue_GJ", group = "")  // @Autonomous(...) is the other common choice
 
-public class CryptoBlue_WJ extends OpMode {
-
+public class CryptoBlue_GJ extends OpMode {
+    private static final String TAGCryBlue_GJ = "8492-CryptoBlue_GJ";
     public static int stage_0PreStart = 0;
     public static int stage_05CloseGripper=5;
     public static int stage_10LiftBlock = 10;
@@ -51,6 +52,7 @@ public class CryptoBlue_WJ extends OpMode {
         robotChassis.hardwareMap = hardwareMap;
         robotChassis.telemetry = telemetry;
         robotChassis.init();
+        jewelsBlue.hardwareMap = hardwareMap;
     }
 
     /*
@@ -79,6 +81,9 @@ public class CryptoBlue_WJ extends OpMode {
     public void loop() {
         //telemetry.addData("Status", shootTrigger.getPosition());
         telemetry.addData("Stage", CurrentStage);
+        RobotLog.aa(TAGCryBlue_GJ,"Stage: "+ CurrentStage );
+        RobotLog.aa(TAGCryBlue_GJ, "Runtime: " + runtime.seconds());
+
         robotChassis.loop();
 
         if (CurrentStage == stage_0PreStart) {

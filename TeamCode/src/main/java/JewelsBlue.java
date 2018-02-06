@@ -4,11 +4,13 @@
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.RobotLog;
 
 
-@Autonomous(name = "JewelsBlue", group = "")  // @Autonomous(...) is the other common choice
+//@Autonomous(name = "JewelsBlue", group = "")  // @Autonomous(...) is the other common choice
 
 public class JewelsBlue extends OpMode {
+    private static final String TAGJewB = "8492-JewellsBlue";
 
     public static int stage_0PreStart = 0;
     public static int stage_05J1Retracted = 5;
@@ -79,9 +81,11 @@ public class JewelsBlue extends OpMode {
      */
     @Override
     public void loop() {
+        RobotLog.aa(TAGJewB,"Stage: "+ CurrentStage );
+        RobotLog.aa(TAGJewB, "Runtime: " + runtime.seconds());
 
         //if (robotChassisWasNull) {
-            robotChassis.loop();
+       //     robotChassis.loop();
         //}
 
         telemetry.update();

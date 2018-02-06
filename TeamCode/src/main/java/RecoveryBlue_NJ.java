@@ -77,6 +77,7 @@ public class RecoveryBlue_NJ extends OpMode {
     public void loop() {
         //telemetry.addData("Status", shootTrigger.getPosition());
         telemetry.addData("Stage", CurrentStage);
+
         robotChassis.loop();
 
         if (CurrentStage == stage_0PreStart) {
