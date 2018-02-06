@@ -19,7 +19,7 @@ public class CryptoBlue_GJ extends OpMode {
     public static int stage_60TurnTwo = 60;
     public static int stage_70driveToBox = 70;
 	public static int stage_80OpenGripper = 80;
-	public static int stage_90Backup = 90;		
+	public static int stage_90Backup = 90;
     public static int stage_150Done = 150;
 
     int CurrentStage = stage_0PreStart;
@@ -144,7 +144,7 @@ if (CurrentStage == stage_23Call_Stinger){
                 CurrentStage = stage_150Done;
             }
         }
-		
+
 
         if (CurrentStage == stage_150Done) {
             if (robotChassis.getcmdComplete()) {
