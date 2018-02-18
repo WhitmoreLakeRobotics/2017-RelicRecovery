@@ -4,12 +4,9 @@
 
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.hardware.DcMotor;
-
-import java.util.Set;
+import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.RobotLog;
 
 
 //@TeleOp(name = "Lifter", group = "CHASSIS")  // @Autonomous(...) is the other common choice
@@ -17,6 +14,7 @@ import java.util.Set;
 public class Lifter extends OpMode {
     /* Declare OpMode members. */
     private ElapsedTime runtime = new ElapsedTime();
+    private static final String TAGLifter = "8492-Lifter";
 
 
     /*
@@ -54,6 +52,9 @@ public class Lifter extends OpMode {
     //set the lift powers... We will need different speeds for up and down.
     public static final double LIFTPOWER_UP = 1;
     public static final double LIFTPOWER_DOWN = -.75;
+    public static final double LIFTPOWER_UP_SLOW = .5;
+    public static final double LIFTPOWER_DOWN_Slow = -.35;
+
     double LIFTPOWER_current = 0;
 
 
@@ -70,7 +71,7 @@ public class Lifter extends OpMode {
      */
     @Override
     public void init() {
-       // telemetry.addData("Status", "Initialized");
+        // telemetry.addData("Status", "Initialized");
 
         /* eg: Initialize the hardware variables. Note that the strings used here as parameters
          * to 'get' must correspond to the names assigned during the robot configuration
@@ -108,6 +109,8 @@ public class Lifter extends OpMode {
     @Override
     public void loop() {
         //telemetry.addData("Status", "Running: " + runtime.toString());
+        RobotLog.aa(TAGLifter, "Curr Postion: " + Math.abs(Motor_Lift.getCurrentPosition()));
+
 
         if (!underStickControl) {
             testInPosition();
@@ -126,13 +129,21 @@ public class Lifter extends OpMode {
         double newPower = newMotorPower;
 
         // make sure that we do not attempt to move less than BOTTOM
-        if ((LIFTPOS_BOTTOM + LIFTPOS_TOL > LIFTPOS_current) && (newMotorPower < 0)) {
-            newPower = 0;
+        //if we are getting close to the bottom tolerance , slow down
+        if ((LIFTPOS_BOTTOM + (LIFTPOS_TOL * 3) > LIFTPOS_current) && (newMotorPower < 0)) {
+            newPower = LIFTPOWER_DOWN_Slow;
+            //if we within bottom tolerance, stop
+            if ((LIFTPOS_BOTTOM + LIFTPOS_TOL > LIFTPOS_current) && (newMotorPower < 0)) {
+                newPower = 0;
+            }
         }
 
         // make sure that we do not attempt a move greater than MAX
-        if ((LIFTPOS_MAX - LIFTPOS_TOL < LIFTPOS_current) && (newMotorPower > 0)) {
-            newPower = 0;
+        if ((LIFTPOS_MAX - (LIFTPOS_TOL * 3) < LIFTPOS_current) && (newMotorPower > 0)) {
+            newPower = LIFTPOWER_UP_SLOW;
+            if ((LIFTPOS_MAX - LIFTPOS_TOL < LIFTPOS_current) && (newMotorPower > 0)) {
+                newPower = 0;
+            }
         }
 
         // make sure that we are not going below the bottom
@@ -149,7 +160,7 @@ public class Lifter extends OpMode {
         // if (newPower != LIFTPOWER_current) {
         LIFTPOWER_current = newPower;
         Motor_Lift.setPower(newPower);
-       // telemetry.addLine(" LIFTPOWER_current= " + LIFTPOWER_current + " curr " + LIFTPOS_current);
+        // telemetry.addLine(" LIFTPOWER_current= " + LIFTPOWER_current + " curr " + LIFTPOS_current);
         // }
     }
 

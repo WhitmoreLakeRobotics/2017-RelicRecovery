@@ -5,10 +5,10 @@
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.robotcore.external.Func;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -27,7 +27,12 @@ public class Chassis extends OpMode {
 
 //@Disabled                            // Uncomment this to add to the opmode list
 
-    public enum gameColor {UNKNOWN, BLUE, RED};
+
+    private static final String TAGChassis = "8492-Chassis";
+
+    public enum gameColor {UNKNOWN, BLUE, RED}
+
+    ;
 
     public static final int ChassisMode_Stop = 0;
     public static final int ChassisMode_Drive = 1;
@@ -60,6 +65,7 @@ public class Chassis extends OpMode {
     public static final int chassis_driveTimeout_mS = 5000;
 
     private int cmdStartTime_mS = 0;
+    private int currentheading;
 
     //From http://www.revrobotics.com/content/docs/HDMotorEncoderGuide.pdf
     //Page 6
@@ -102,7 +108,7 @@ public class Chassis extends OpMode {
     @Override
     public void init() {
 
-       // telemetry.addData("Status", "Initialized");
+        // telemetry.addData("Status", "Initialized");
         composeTelemetry();
         //telemetry.log().add("Waiting for start...");
 
@@ -226,6 +232,12 @@ public class Chassis extends OpMode {
         gripper.loop();
         lifter.loop();
         extender.loop();
+        currentheading = gyroNormalize(getGyroHeading());
+        RobotLog.aa(TAGChassis, "Mode: " + ChassisMode_Current);
+        RobotLog.aa(TAGChassis, "loop() currHeading: " + currentheading + " target: " + TargetHeadingDeg);
+
+        RobotLog.aa(TAGChassis, "Runtime: " + runtime.seconds());
+
 
         if (ChassisMode_Stop == ChassisMode_Current) {
             Dostop();
@@ -262,17 +274,20 @@ public class Chassis extends OpMode {
 
         //goto chassis idle mode
         ChassisMode_Current = ChassisMode_Idle;
-        DriveMotorEncoderReset();
+//        DriveMotorEncoderReset();
+        RobotLog.aa(TAGChassis, "STOP  leftpower: " + TargetMotorPowerLeft + " rightpower: " + TargetMotorPowerRight);
+
     }
 
     private void DoDrive() {
         /*
         * executes the logic for a single scan of driving straight by gyro
         */
-        double delta = - deltaHeading(gyroNormalize(getGyroHeading()),TargetHeadingDeg);
+        double delta = -deltaHeading(gyroNormalize(getGyroHeading()), TargetHeadingDeg);
 
         double leftPower = TargetMotorPowerLeft - (delta * chassis_KPGyroStraight);
         double rightPower = TargetMotorPowerRight + (delta * chassis_KPGyroStraight);
+
 
         if (leftPower < -1) {
             leftPower = -1;
@@ -287,6 +302,7 @@ public class Chassis extends OpMode {
         if (rightPower > 1) {
             rightPower = 1;
         }
+        RobotLog.aa(TAGChassis, "DoDrive  leftpower: " + leftPower + " rightpower: " + rightPower);
 
 
         LDM1.setPower(leftPower);
@@ -303,7 +319,8 @@ public class Chassis extends OpMode {
             cmdComplete = true;
             Dostop();
         }
-        telemetry.addLine(" MP " + TargetMotorPowerLeft +" IT = " + inchesTraveled);
+        telemetry.addLine(" MP " + TargetMotorPowerLeft + " IT = " + inchesTraveled);
+        RobotLog.aa(TAGChassis, "DoDrive - MP " + TargetMotorPowerLeft + " IT = " + inchesTraveled);
 
     }
 
@@ -313,10 +330,14 @@ public class Chassis extends OpMode {
          */
 
         int currHeading = gyroNormalize(getGyroHeading());
+        RobotLog.aa(TAGChassis, "Turn currHeading: " + currHeading + " target: " + TargetHeadingDeg);
+        RobotLog.aa(TAGChassis, "Runtime: " + runtime.seconds());
+
         if (gyroInTol(currHeading, TargetHeadingDeg, chassis_GyroHeadingTol)) {
+            RobotLog.aa(TAGChassis, "Complete currHeading: " + currHeading);
             //We are there stop
             cmdComplete = true;
-            //ChassisMode_Current = ChassisMode_Stop;
+            ChassisMode_Current = ChassisMode_Stop;
             Dostop();
         }
     }
@@ -339,15 +360,20 @@ public class Chassis extends OpMode {
         /*
         called by other opmodes to start a drive straight by gyro command
          */
+        RobotLog.aa(TAGChassis, "cmdDrive: speed: " + speed + " heading: " + headingDeg + " inches: " + inches);
+//        ChassisMode_Current = ChassisMode_Drive;
+        cmdComplete = false;
 
-        ChassisMode_Current = ChassisMode_Drive;
         TargetHeadingDeg = headingDeg;
         TargetMotorPowerLeft = speed;
         TargetMotorPowerRight = speed;
         TargetDistanceInches = inches;
         runtime.reset();
         cmdComplete = false;
-        DriveMotorEncoderReset();
+        if (ChassisMode_Current != ChassisMode_Drive) {
+//            DriveMotorEncoderReset();
+            ChassisMode_Current = ChassisMode_Drive;
+        }
         DoDrive();
     }
 
@@ -360,7 +386,9 @@ public class Chassis extends OpMode {
         //can only be called one time per movement of the chassis
         ChassisMode_Current = ChassisMode_Turn;
         TargetHeadingDeg = headingDeg;
-        DriveMotorEncoderReset();
+        RobotLog.aa(TAGChassis, "cmdTurn target: " + TargetHeadingDeg);
+
+// /        DriveMotorEncoderReset();
         LDM1.setPower(LSpeed);
         LDM2.setPower(LSpeed);
         RDM1.setPower(RSpeed);
@@ -383,7 +411,7 @@ public class Chassis extends OpMode {
         }
         // one of each
         else if (currHeading >= 0 && targetHeading <= 0) {
-            returnValue =  (targetHeading + currHeading);
+            returnValue = (targetHeading + currHeading);
         }
         //one of each again
         else if (currHeading <= 0 && targetHeading >= 0) {
@@ -524,6 +552,8 @@ public class Chassis extends OpMode {
         float signumUpperTol = Math.signum(upperTol);
         float signumLowerTol = Math.signum(lowerTol);
 
+        RobotLog.aa(TAGChassis, "gyrointol: UT" + upperTol + " LT: " + lowerTol + " normCurr: " + normalCurr);
+//
         boolean retValue = false;
         // works for all positive numbers direction values
         if (signumUpperTol > 0 && signumLowerTol > 0) {

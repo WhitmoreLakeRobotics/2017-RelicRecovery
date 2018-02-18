@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.RobotLog;
 
 
 //@TeleOp(name = "Stinger", group = "")  // @Autonomous(...) is the other common choice
@@ -40,6 +41,7 @@ public class Stinger extends OpMode {
 
     /* Declare OpMode members. */
     private ElapsedTime runtime = new ElapsedTime();
+    private static final String TAGStinger = "8492- Stinger";
 
     private final double EXTEND_TIME_MS = 1000;
     private final double RETRACT_TIME_MS = 1000;
@@ -138,6 +140,8 @@ public class Stinger extends OpMode {
     @Override
     public void loop() {
         telemetry.addData("StingerMode", " " + StingerMode_Current);
+//        RobotLog.aa(TAGStinger,"StingerMode: " + StingerMode_Current);
+  //      RobotLog.aa(TAGStinger, "Runtime: " + runtime.seconds());
 
 
         if (StingerMode_Current == STINGER_MODE_J1_EXTENDING) {
@@ -223,6 +227,8 @@ public class Stinger extends OpMode {
 
 
     private void DoJ2STOWING() {
+//        RobotLog.aa(TAGStinger,"Stingertime: " + Stingertime.milliseconds());
+
         if (Stingertime.milliseconds() > RETRACT_TIME_MS) {
             StingerMode_Current = STINGER_MODE_J2_STOW;
         }
@@ -240,6 +246,7 @@ public class Stinger extends OpMode {
 
     //Gives the command retract
     public void cmdDoJ1Retract() {
+//        RobotLog.aa(TAGStinger,"cmdDoJ1Retract / StingerMode: " + StingerMode_Current);
         ServoJ1Stinger.setPosition(STINGER_POS_J1_RETRACTED);
         StingerMode_Current = STINGER_MODE_J1_RETRACTING;
         Stingertime.reset();
@@ -273,6 +280,8 @@ public class Stinger extends OpMode {
     }
 
     public void cmdDoJ2STOW() {
+//        RobotLog.aa(TAGStinger,"cmdDoJ2Stow: " + StingerMode_Current);
+
         ServoJ2Stinger.setPosition(STINGER_POS_J2_STOW);
         StingerMode_Current = STINGER_MODE_J2_STOWING;
         Stingertime.reset();
@@ -329,6 +338,7 @@ public class Stinger extends OpMode {
 
 
     public boolean IsJ2STOWED() {
+//        RobotLog.aa(TAGStinger," IsJ2STOWED " + StingerMode_Current + " - " +STINGER_MODE_J2_STOW);
 
         return (StingerMode_Current == STINGER_MODE_J2_STOW);
 

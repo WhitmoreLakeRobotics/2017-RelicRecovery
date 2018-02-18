@@ -7,12 +7,14 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.RobotLog;
 import com.vuforia.STORAGE_TYPE;
 
 
 //@TeleOp(name = "Gripper", group = "")  // @Autonomous(...) is the other common choice
 
 public class Gripper extends OpMode {
+    private static final String TAGGripper = "8492-Gripper";
 
 
     /*
@@ -129,6 +131,7 @@ public class Gripper extends OpMode {
         //telemetry.addData("Status", shootTrigger.getPosition());
 //        telemetry.addData("Status", "gripper java Running: " + runtime.toString());
         //telemetry.addData("Status", "gripper : Gripper_current = " + Gripper_current);
+       RobotLog.aa(TAGGripper, "Mode: " + Gripper_current);
         if (Gripper_current == GRIPPER_MODE_CLOSING) {
             Do_closing();
         }

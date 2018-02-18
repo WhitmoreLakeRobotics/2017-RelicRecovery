@@ -81,24 +81,30 @@ public class JewelsBlue extends OpMode {
      */
     @Override
     public void loop() {
-        RobotLog.aa(TAGJewB,"Stage: "+ CurrentStage );
-        RobotLog.aa(TAGJewB, "Runtime: " + runtime.seconds());
+  //      RobotLog.aa(TAGJewB,"Stage: "+ CurrentStage + " " + stage_0PreStart);
+  //      RobotLog.aa(TAGJewB, "Runtime: " + runtime.seconds());
 
-        //if (robotChassisWasNull) {
-       //     robotChassis.loop();
-        //}
+        if (robotChassisWasNull) {
+            robotChassis.loop();
+       }
 
         telemetry.update();
         telemetry.addLine("Jewel_Stage = " + CurrentStage);
 
         if (CurrentStage == stage_0PreStart) {
+//            RobotLog.aa(TAGJewB,"Prestart: "+ CurrentStage );
+
             robotChassis.stinger.cmdDoJ1Retract();
             robotChassis.stinger.cmdDoJ2STOW();
             CurrentStage = stage_05J1Retracted;
         }
 
         if (CurrentStage == stage_05J1Retracted) {
+//            RobotLog.aa(TAGJewB,"Retrracted: "+ CurrentStage );
+
             if (robotChassis.stinger.IsJ2STOWED()) {
+//                RobotLog.aa(TAGJewB,"Isj2Stowed");
+
                 CurrentStage = stage_10J1Angled;
                 robotChassis.stinger.cmdDoJ1Angle();
             }
@@ -208,6 +214,8 @@ public class JewelsBlue extends OpMode {
     }
 
     public boolean IsJewelsDone() {
+
+//        RobotLog.aa(TAGJewB,"IsJewellDone: "+ CurrentStage );
         return (JewelsDone);
     }
 
