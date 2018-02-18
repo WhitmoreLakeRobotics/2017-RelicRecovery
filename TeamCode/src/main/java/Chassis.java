@@ -274,7 +274,7 @@ public class Chassis extends OpMode {
 
         //goto chassis idle mode
         ChassisMode_Current = ChassisMode_Idle;
-//        DriveMotorEncoderReset();
+        DriveMotorEncoderReset();
         RobotLog.aa(TAGChassis, "STOP  leftpower: " + TargetMotorPowerLeft + " rightpower: " + TargetMotorPowerRight);
 
     }
@@ -371,7 +371,7 @@ public class Chassis extends OpMode {
         runtime.reset();
         cmdComplete = false;
         if (ChassisMode_Current != ChassisMode_Drive) {
-//            DriveMotorEncoderReset();
+            DriveMotorEncoderReset();
             ChassisMode_Current = ChassisMode_Drive;
         }
         DoDrive();

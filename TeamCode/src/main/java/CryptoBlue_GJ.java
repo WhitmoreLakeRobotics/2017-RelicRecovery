@@ -42,7 +42,6 @@ public class CryptoBlue_GJ extends OpMode {
 
     /* Declare OpMode members. */
     private ElapsedTime runtime = new ElapsedTime();
-    private ElapsedTime timelapse = new ElapsedTime();
 
     /*
      * Code to run ONCE when the driver hits INIT
@@ -121,8 +120,7 @@ public class CryptoBlue_GJ extends OpMode {
                 jewelsBlue.loop();
                 if (jewelsBlue.IsJewelsDone()) {
                     CurrentStage = stage_30PullOffStone;
-                    timelapse.reset();
-                    RobotLog.aa(TAGCryBlue_GJ, "Stage: " + CurrentStage);
+//                    RobotLog.aa(TAGCryBlue_GJ, "Stage: " + CurrentStage);
 
                 }
             }
@@ -132,13 +130,12 @@ public class CryptoBlue_GJ extends OpMode {
         //Pull off the stone
         if (CurrentStage == stage_30PullOffStone) {
             RobotLog.aa(TAGCryBlue_GJ, "off stone / Stage: " + CurrentStage + " complete? " + robotChassis.getcmdComplete());
-//            if (timelapse.seconds() > 0.2) {
-            //          if (! robotChassis.getcmdComplete()) {
-
-            robotChassis.cmdDrive(AUTO_DrivePower, 0, 24);
-
+            if (countcmd < 1) {
+                robotChassis.cmdDrive(AUTO_DrivePower, 0, 24);
+                countcmd = countcmd + 1;
+            }
             if (robotChassis.getcmdComplete()) {
-                robotChassis.DriveMotorEncoderReset();
+                countcmd = 0;
                 CurrentStage = stage_40Turn1;
                 //         }
             }
@@ -152,16 +149,11 @@ public class CryptoBlue_GJ extends OpMode {
 
             // only want to call turn comand once
             if (countcmd < 1) {
-                //              if (! robotChassis.getcmdComplete()) {
-
-//            robotChassis.cmdTurn(AUTO_TurnPower, -AUTO_TurnPower, -90);
                 countcmd = 1;
 
                 robotChassis.cmdTurn(-AUTO_TurnPower, AUTO_TurnPower, -90);
             }
             if (robotChassis.getcmdComplete()) {
-                timelapse.reset();
-                robotChassis.DriveMotorEncoderReset();
                 countcmd = 0;
                 CurrentStage = stage_50driveToFront;
             }
@@ -171,47 +163,40 @@ public class CryptoBlue_GJ extends OpMode {
 
 //drive toward cryptobox
         if (CurrentStage == stage_50driveToFront) {
-            // if (robotChassis.getcmdComplete()) {
-//            if (timelapse.seconds() > 0.2) {
-            //              if (! robotChassis.getcmdComplete()) {
-            RobotLog.aa(TAGCryBlue_GJ, "drive2 / Stage: " + CurrentStage + "complete? " + robotChassis.getcmdComplete());
-
-            robotChassis.cmdDrive(AUTO_DrivePower, -90, 21);
-            //            }
+            if (countcmd < 1) {
+//                RobotLog.aa(TAGCryBlue_GJ, "drive2 / Stage: " + CurrentStage + "complete? " + robotChassis.getcmdComplete());
+                robotChassis.cmdDrive(AUTO_DrivePower, -90, 21);
+                countcmd = countcmd + 1;
+            }            //            }
             if (robotChassis.getcmdComplete()) {
-                robotChassis.DriveMotorEncoderReset();
-                timelapse.reset();
+                countcmd = 0;
                 CurrentStage = stage_60TurnTwo;
             }
             //      }
         }
 // turn to face box
         if (CurrentStage == stage_60TurnTwo) {
-            //if (robotChassis.getcmdComplete()) {
             if (countcmd < 1) {
-                //             if (! robotChassis.getcmdComplete()) {
-                RobotLog.aa(TAGCryBlue_GJ, "TURN2 / Stage: " + CurrentStage + "complete? " + robotChassis.getcmdComplete());
+//                RobotLog.aa(TAGCryBlue_GJ, "TURN2 / Stage: " + CurrentStage + "complete? " + robotChassis.getcmdComplete());
                 countcmd = countcmd + 1;
                 robotChassis.cmdTurn(-AUTO_TurnPower, AUTO_TurnPower, -130);
             }
             if (robotChassis.getcmdComplete()) {
                 robotChassis.DriveMotorEncoderReset();
                 countcmd = 0;
-                timelapse.reset();
                 CurrentStage = stage_70driveToBox;
             }
 
         }
         //Drive to box
         if (CurrentStage == stage_70driveToBox) {
-            //if (robotChassis.getcmdComplete()) {
-            RobotLog.aa(TAGCryBlue_GJ, "to box / Stage: " + CurrentStage + "complete? " + robotChassis.getcmdComplete());
-
-
-            robotChassis.cmdDrive(AUTO_DrivePower, -120, 12);
-
+            if (countcmd < 1) {
+//                RobotLog.aa(TAGCryBlue_GJ, "to box / Stage: " + CurrentStage + "complete? " + robotChassis.getcmdComplete());
+                robotChassis.cmdDrive(AUTO_DrivePower, -120, 12);
+                countcmd = countcmd + 1;
+            }
             if (robotChassis.getcmdComplete()) {
-         robotChassis.DriveMotorEncoderReset();
+                countcmd = 0;
                 CurrentStage = stage_80OpenGripper;
             }
         }
@@ -226,7 +211,7 @@ public class CryptoBlue_GJ extends OpMode {
             }
         }
 
-        // backup 1 inch to not be touching the glypy
+        // backup 2 inches to not be touching the glypy
         if (CurrentStage == stage_90Backup) {
             if (robotChassis.gripper.Is_Open()) {
                 robotChassis.cmdDrive(-AUTO_DrivePower, -120, 2.0);

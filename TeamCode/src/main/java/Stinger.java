@@ -141,7 +141,7 @@ public class Stinger extends OpMode {
     public void loop() {
         telemetry.addData("StingerMode", " " + StingerMode_Current);
 //        RobotLog.aa(TAGStinger,"StingerMode: " + StingerMode_Current);
-  //      RobotLog.aa(TAGStinger, "Runtime: " + runtime.seconds());
+        //      RobotLog.aa(TAGStinger, "Runtime: " + runtime.seconds());
 
 
         if (StingerMode_Current == STINGER_MODE_J1_EXTENDING) {
@@ -349,6 +349,7 @@ public class Stinger extends OpMode {
         int blueValue = sensorColorStinger.blue();
         int redValue = sensorColorStinger.red() + 7;
 
+        RobotLog.aa(TAGStinger, " isblue bluevalue: " + blueValue + " redvalue " + redValue);
 
         return (blueValue > redValue);
     }
@@ -358,6 +359,7 @@ public class Stinger extends OpMode {
         int blueValue = sensorColorStinger.blue() + 7;
         int redValue = sensorColorStinger.red();
 
+        RobotLog.aa(TAGStinger, " isred bluevalue: " + blueValue + " redvalue " + redValue);
 
         return (blueValue < redValue);
     }

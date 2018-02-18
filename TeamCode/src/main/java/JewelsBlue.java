@@ -1,10 +1,8 @@
 
 
 
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.util.RobotLog;
 
 
 //@Autonomous(name = "JewelsBlue", group = "")  // @Autonomous(...) is the other common choice
@@ -43,12 +41,12 @@ public class JewelsBlue extends OpMode {
     @Override
     public void init() {
 
-       // if (robotChassis == null) {
-            robotChassis = new Chassis();
-            robotChassis.hardwareMap = hardwareMap;
-            robotChassis.telemetry = telemetry;
-            robotChassis.init();
-            robotChassisWasNull = true;
+        // if (robotChassis == null) {
+        robotChassis = new Chassis();
+        robotChassis.hardwareMap = hardwareMap;
+        robotChassis.telemetry = telemetry;
+        robotChassis.init();
+        robotChassisWasNull = true;
         //}
 
         stoneColor = Chassis.gameColor.BLUE;
@@ -81,12 +79,12 @@ public class JewelsBlue extends OpMode {
      */
     @Override
     public void loop() {
-  //      RobotLog.aa(TAGJewB,"Stage: "+ CurrentStage + " " + stage_0PreStart);
-  //      RobotLog.aa(TAGJewB, "Runtime: " + runtime.seconds());
+        //      RobotLog.aa(TAGJewB,"Stage: "+ CurrentStage + " " + stage_0PreStart);
+        //      RobotLog.aa(TAGJewB, "Runtime: " + runtime.seconds());
 
         if (robotChassisWasNull) {
             robotChassis.loop();
-       }
+        }
 
         telemetry.update();
         telemetry.addLine("Jewel_Stage = " + CurrentStage);
